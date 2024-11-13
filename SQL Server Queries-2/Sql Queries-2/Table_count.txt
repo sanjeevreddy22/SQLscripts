@@ -1,0 +1,34 @@
+use AMS
+
+
+
+declare @yesterday date
+declare @now date
+declare @todaycount int
+declare @yesterdaycount int
+declare @Total int
+ 
+set @now = getdate()
+set @yesterday = dateadd(day,-1,@now)
+
+
+select @todaycount=count(*) from CustomerListAccessedReviewsLink where DateCreated=@yesterday
+select @yesterdaycount =count(*) from CustomerListAccessedReviewsLink where DateCreated=@now
+
+
+set @Total=@todaycount-@yesterdaycount
+
+if(@Total<=0)
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 'select count(*) as TodayTotalCount from ams.dbo.CustomerListAccessedReviewsLink ' ,  
+    @subject = 'Check the CustomerListAccessedReviewsLink  Count',  
+    @body = 'CustomerListAccessedReviewsLink Table Count Not Increased';
+
+
+Print 'Email'
+end
+

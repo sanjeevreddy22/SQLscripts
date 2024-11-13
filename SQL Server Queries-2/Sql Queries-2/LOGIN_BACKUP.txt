@@ -1,0 +1,2 @@
+SELECT 'EXEC sp_addlogin', QUOTENAME (name) , ',@passwd = ',Convert(Varbinary(512),password), ',@defdb = ', QUOTENAME (dbname), ',@deflanguage = ',QUOTENAME(language),', @sid = ', sid,       ',@encryptopt = skip_encryption'
+FROM master..syslogins WHERE [name] in ('Test')

@@ -1,0 +1,50 @@
+SELECT 
+              ss.name AS SchemaName
+              , st.name AS TableName
+              , s.name AS IndexName 
+              , STATS_DATE(s.id,s.indid) AS 'Statistics Last Updated'
+              , s.rowcnt AS 'Row Count'                       
+              , s.rowmodctr AS 'Number Of Changes'     
+              , CAST((CAST(s.rowmodctr AS DECIMAL(28,8))/CAST(s.rowcnt AS DECIMAL(28,2)) * 100.0)
+                                  AS DECIMAL(28,2)) AS '% Rows Changed'
+       FROM sys.sysindexes s 
+       INNER JOIN sys.tables st ON st.[object_id] = s.[id]
+       INNER JOIN sys.schemas ss ON ss.[schema_id] = st.[schema_id]
+       WHERE s.id > 100     
+       AND s.indid > 0            
+       AND s.rowcnt >= 500  
+              ORDER BY SchemaName, TableName, IndexName
+
+
+
+
+
+select object_name(si.id) as ObjectName, ss.name As StatsName, si.indid, si.rowcnt, si.rowmodctr, 
+stats_date(ss.object_id, ss.stats_id) as StatsUpdateDate, 
+case ss.no_recompute when 1 then 'Off' when 0 then 'On' else NULL end as AutoUpdate
+from sys.sysindexes si
+left join sys.stats ss
+on si.name = ss.name
+and si.[id] = ss.[object_id]
+
+
+
+
+UPDATE STATISTICS mxiTradeIRSwap
+EXEC sp_recompile N'mxiTradeIRSwap';
+
+--https://msdn.microsoft.com/en-gb/library/ms187348.aspx
+UPDATE STATISTICS Production.Product(Products) WITH SAMPLE 50 PERCENT;
+UPDATE STATISTICS Production.Product(Products) WITH FULLSCAN--, NORECOMPUTE;
+UPDATE STATISTICS Sales.SalesOrderDetail AK_SalesOrderDetail_rowguid;
+
+
+
+
+
+
+
+
+
+update statistics Employee pk_employee
+exec sp_recompile employee

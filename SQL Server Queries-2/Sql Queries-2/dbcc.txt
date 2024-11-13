@@ -1,0 +1,8 @@
+dbcc sqlperf(logspace)
+dbcc checkdb
+dbcc opentran
+dbcc checktable
+dbcc shrinkfile
+dbcc inpubuffer()
+
+

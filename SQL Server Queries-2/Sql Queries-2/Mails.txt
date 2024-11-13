@@ -1,0 +1,66 @@
+Past 24 Hours failed mails
+
+SELECT items.subject ,
+       items.recipients ,
+       items.copy_recipients ,
+       items.blind_copy_recipients ,
+       items.last_mod_date ,
+       l.description
+FROM   msdb.dbo.sysmail_faileditems AS items
+       LEFT OUTER JOIN msdb.dbo.sysmail_event_log AS l 
+                    ON items.mailitem_id = l.mailitem_id
+WHERE  items.last_mod_date > DATEADD(DAY, -1,GETDATE())
+
+
+
+=====================================================================
+Last 24 Hours Successfully Messages 
+
+
+
+successfully sent mails 
+
+
+	select * from msdb.dbo.sysmail_allitems where sent_status like '%Sent%' order by send_request_date desc
+
+
+
+Mails list 
+
+SELECT * FROM msdb..sysmail_mailitems
+--where subject like '%Daily Jobs Customer Details whose Job End Time is NULL%'
+order by send_request_date desc
+
+==============================================================================
+
+failed mail list
+
+select * from msdb.dbo.sysmail_faileditems
+order by send_request_date desc
+
+that the external program could not send successfully.
+
+SELECT items.subject,  
+    items.last_mod_date  
+    ,l.description FROM dbo.sysmail_faileditems as items  
+INNER JOIN dbo.sysmail_event_log AS l  
+    ON items.mailitem_id = l.mailitem_id  
+WHERE items.recipients LIKE '%danw%'    -------------------mail id
+    OR items.copy_recipients LIKE '%danw%'   
+    OR items.blind_copy_recipients LIKE '%danw%'  
+GO
+
+
+===============================================================================
+
+SELECT 
+  err.[description],
+  fail.*
+FROM [msdb].[dbo].[sysmail_event_log] err
+  inner join [msdb].[dbo].[sysmail_faileditems] fail
+    ON err.mailitem_id = fail.mailitem_id
+
+
+===================================
+
+  

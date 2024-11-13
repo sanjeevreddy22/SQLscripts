@@ -1,0 +1,44 @@
+USE master
+SET NOCOUNT ON
+DECLARE @MountPoint VARCHAR(100),
+            @SQL VARCHAR(100) 
+IF OBJECT_ID('tempdb.dbo.#Drives') IS NOT NULL DROP TABLE #Drives
+CREATE TABLE #Drives ([Drive] VARCHAR(100) NULL)
+
+IF OBJECT_ID('tempdb.dbo.#DrivesDetails') IS NOT NULL DROP TABLE #DrivesDetails
+CREATE TABLE #DrivesDetails ([Drive] VARCHAR(100) NULL, [Info] VARCHAR(80))
+
+INSERT #Drives ([Drive])
+      exec xp_cmdshell 'mountvol /L|findstr /V "?"'
+DECLARE mountpoint_cursor CURSOR FOR 
+      SELECT LTRIM(RTRIM([Drive])) FROM #Drives WHERE Drive IS NOT NULL AND Drive like '%\%'
+OPEN mountpoint_cursor
+FETCH NEXT FROM mountpoint_cursor 
+      INTO @MountPoint
+
+WHILE @@FETCH_STATUS = 0
+BEGIN
+      --PRINT @MountPoint     
+      SET   @SQL = 'EXEC xp_cmdshell ''fsutil volume diskfree ' + @MountPoint + ''''                  
+            INSERT      #DrivesDetails
+            (
+                        Info
+            )
+            EXEC  (@SQL)
+      UPDATE      #DrivesDetails
+            SET   Drive = @MountPoint
+            WHERE Drive IS NULL
+      FETCH NEXT FROM mountpoint_cursor INTO @MountPoint
+END
+CLOSE mountpoint_cursor
+DEALLOCATE mountpoint_cursor
+SELECT      @@servername as 'server'
+           ,Drive as 'drive'
+           ,SUM(CASE WHEN Info LIKE 'Total # of bytes             : %' THEN CAST(REPLACE(SUBSTRING(Info, 32, 48), CHAR(13), '') AS BIGINT) ELSE CAST(0 AS BIGINT) END)/1024/1024 AS 'size_mb'
+           ,SUM(CASE WHEN Info LIKE 'Total # of free bytes        : %' THEN CAST(REPLACE(SUBSTRING(Info, 32, 48), CHAR(13), '') AS BIGINT) ELSE CAST(0 AS BIGINT) END)/1024/1024 AS 'free_mb'
+FROM       (SELECT Drive,Info
+            FROM  #DrivesDetails
+            WHERE Info LIKE 'Total # of %'
+           )AS d
+GROUP BY    Drive
+ORDER BY    Drive

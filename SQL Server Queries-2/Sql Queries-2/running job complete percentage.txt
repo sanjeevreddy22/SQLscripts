@@ -1,0 +1,1 @@
+select session_id, blocking_session_id, db_name(database_id) as [Database], command, percent_complete, wait_type,wait_time, wait_resource, scheduler_id, Qry.text from sys.dm_exec_requests req cross apply sys.fn_get_sql(req.sql_handle) as Qry where req.session_id>50 and command = 'BACKUP DATABASE'

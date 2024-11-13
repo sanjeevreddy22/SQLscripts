@@ -1,0 +1,134 @@
+use master
+
+sp_who2 'active'
+
+sp_whoisactive @@SPID
+
+sp_lock @@SPID
+
+select resource_type,request_mode,request_status,request_session_id from sys.dm_tran_locks where resource_database_id=5 --and request_session_id=
+
+
+select session_id,wait_duration_ms,wait_type,blocking_session_id from sys.dm_os_waiting_tasks
+
+
+
+SELECT
+      r.session_id
+,     r.start_time
+,     TotalElapsedTime_ms = r.total_elapsed_time
+,     r.[status]
+,     r.command
+,     DatabaseName = DB_Name(r.database_id)
+,     r.wait_type
+,     r.last_wait_type
+,     r.wait_resource
+,     r.cpu_time
+,     r.reads
+,     r.writes
+,     r.logical_reads
+,     t.[text] AS [executing batch]
+,     SUBSTRING(
+                        t.[text], r.statement_start_offset / 2, 
+                        (     CASE WHEN r.statement_end_offset = -1 THEN DATALENGTH (t.[text]) 
+                                     ELSE r.statement_end_offset 
+                              END - r.statement_start_offset ) / 2 
+                   ) AS [executing statement] 
+,     p.query_plan
+FROM
+      sys.dm_exec_requests r
+CROSS APPLY
+      sys.dm_exec_sql_text(r.sql_handle) AS t
+CROSS APPLY 
+      sys.dm_exec_query_plan(r.plan_handle) AS p
+ORDER BY 
+      r.total_elapsed_time DESC;
+
+
+==================
+
+Root Blocking
+
+
+SELECT     spid    ,sp.STATUS    ,loginame   = SUBSTRING(loginame, 1, 12)    ,hostname   = SUBSTRING(hostname, 1, 12)
+    ,blk        = CONVERT(CHAR(3), blocked)    ,open_tran    ,dbname     = SUBSTRING(DB_NAME(sp.dbid),1,10)
+    ,cmd    ,waittype    ,waittime    ,last_batch    ,SQLStatement       =
+        SUBSTRING
+        (qt.text,
+            er.statement_start_offset/2,
+            (CASE WHEN er.statement_end_offset = -1
+                THEN LEN(CONVERT(nvarchar(MAX), qt.text)) * 2
+                ELSE er.statement_end_offset
+                END - er.statement_start_offset)/2       )
+FROM master.dbo.sysprocesses sp
+LEFT JOIN sys.dm_exec_requests er     ON er.session_id = sp.spid
+OUTER APPLY sys.dm_exec_sql_text(er.sql_handle) AS qt
+WHERE spid IN (SELECT blocked FROM master.dbo.sysprocesses)
+AND blocked = 0
+
+
+========================
+
+
+
+
+select * from 
+sys.dm_os_waiting_tasks t
+inner join sys.dm_exec_connections c on c.session_id = t.blocking_session_id
+cross apply sys.dm_exec_sql_text(c.most_recent_sql_handle) as h1
+
+
+=======
+Current Running Queries
+
+SELECT
+r.session_id,
+s.TEXT,
+r.[status],
+r.blocking_session_id,
+r.cpu_time,
+r.total_elapsed_time
+FROM sys.dm_exec_requests r
+CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS s
+
+=============================================================
+
+
+
+select session_id,status,command,DB_NAME(database_id),Blocking_session_id,wait_type,wait_time from sys.dm_exec_requests
+where session_id>50
+
+--select * from sys.dm_exec_requests
+
+
+===============================================================
+
+--Locks infromation
+
+SELECT L.request_session_id AS SPID,
+DB_NAME(L.resource_database_id) AS DatabaseName,
+O.Name AS LockedObjectName,
+P.object_id AS LockedObjectId,
+L.resource_type AS LockedResource,
+L.request_mode AS LockType,
+ST.text AS SqlStatementText,
+ES.login_name AS LoginName,
+ES.host_name AS HostName,
+TST.is_user_transaction as IsUserTransaction,
+AT.name as TransactionName,
+CN.auth_scheme as AuthenticationMethod
+FROM sys.dm_tran_locks L
+JOIN sys.partitions P ON P.hobt_id = L.resource_associated_entity_id
+JOIN sys.objects O ON O.object_id = P.object_id
+JOIN sys.dm_exec_sessions ES ON ES.session_id = L.request_session_id
+JOIN sys.dm_tran_session_transactions TST ON ES.session_id = TST.session_id
+JOIN sys.dm_tran_active_transactions AT ON TST.transaction_id = AT.transaction_id
+JOIN sys.dm_exec_connections CN ON CN.session_id = ES.session_id
+CROSS APPLY sys.dm_exec_sql_text(CN.most_recent_sql_handle) AS ST
+WHERE resource_database_id = db_id()
+ORDER BY L.request_session_id
+
+
+select count(*) from sys.dm_tran_locks where resource_database_id=5
+
+

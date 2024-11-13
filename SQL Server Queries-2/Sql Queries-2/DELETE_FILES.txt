@@ -1,0 +1,7 @@
+List files
+xp_cmdshell 'forfiles /P H:\Load /m *_*.lsb /c "cmd /c echo @FILE" /D -1'
+go
+
+Del Files
+xp_cmdshell 'forfiles /P H:\Load /m *_*.lsb /c "cmd /c del @FILE" /D -1'
+go

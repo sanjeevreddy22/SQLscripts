@@ -1,0 +1,8 @@
+select * FROM ::fn_trace_getinfo(default)
+
+sp_trace_setstatus [ @traceid = ] trace_id , [ @status = ] status
+0 - Stops the specified trace.
+1 - Starts the specified trace.
+2 - Closes the specified trace and deletes its definition from the server.
+
+SELECT * FROM fn_trace_gettable('c:\temp\mytrace.trc', default);

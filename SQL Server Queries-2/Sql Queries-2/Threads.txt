@@ -1,0 +1,22 @@
+
+current threads
+
+SELECT 
+
+SUM(current_workers_count) as [Current worker thread] FROM sys.dm_os_schedulers
+
+
+Total threads
+
+select max_worker_counts from sys.dm_os_sys_info--960 for sql server 32 processes
+
+
+Threads wait type(may be)
+
+
+select * from sys.dm_os_wait_stats where wait_type = 'THREADPOOL'
+-- most of the sessions are waiting for LCK_M_S
+select * from sys.dm_os_waiting_tasks 
+
+
+Read more at http://www.sqlpanda.com/2013/07/threadpool-and-sql-server-threads.html#z6oFuxRJabHFJUsU.99

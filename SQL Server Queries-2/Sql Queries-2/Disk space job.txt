@@ -1,0 +1,22 @@
+use Development_AMS
+create table FreeSpace(Drive char(1),MB_Free int ,datecreated datetime default getdate())
+-----------------------------------------------------------------------------------------------
+use Development_AMS
+go
+
+insert into FreeSpace(Drive,MB_Free)  exec xp_fixeddrives
+if exists (select * from FreeSpace where MB_Free<100000 )
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 'select * from development_ams.dbo.Freespace where MB_Free<1000000' ,  
+    @subject = 'In server one drive have less than 100GB',  
+    @body = 'Dear DBA verify once ';
+
+
+Print 'Email'
+end
+
+truncate table Freespace

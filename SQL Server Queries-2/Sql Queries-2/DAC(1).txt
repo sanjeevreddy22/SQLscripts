@@ -1,0 +1,12 @@
+-- Locking Information
+SELECT * FROM sys.dm_tran_locks
+GO
+-- Cache Status
+SELECT * FROM sys.dm_os_memory_cache_counters 
+GO
+-- Active Sessions
+SELECT * FROM sys.dm_exec_sessions 
+GO
+-- Requests Status
+SELECT * FROM sys.dm_exec_requests
+GO

@@ -1,0 +1,9 @@
+MERGE dbo.HostColletion AS Target
+USING (select distinct [host_name],[program_name],client_interface_name,login_name  from sys.dm_exec_sessions) AS Source
+on (target.host_name = source.host_name and target.program_name = source.program_name and target.client_interface_name=source.client_interface_name and target.login_name=source.login_name)
+WHEN NOT MATCHED BY TARGET THEN
+INSERT (host_name,program_name,client_interface_name,login_name)
+VALUES (source.host_name,source.program_name,source.client_interface_name,source.login_name);
+go
+
+delete from dbo.HostColletion where HOST_NAME is NULL and login_name='sa'

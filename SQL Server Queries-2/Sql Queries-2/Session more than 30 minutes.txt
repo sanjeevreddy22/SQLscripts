@@ -1,0 +1,172 @@
+if exists 
+(
+SELECT sqltext.TEXT,req.session_id,req.status,req.command,req.cpu_time,req.total_elapsed_time
+FROM sys.dm_exec_requests req CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS sqltext
+where req.total_elapsed_time>2627
+--1800000
+)
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 
+	'SELECT
+      r.session_id
+,     r.start_time
+,     TotalElapsedTime_ms = r.total_elapsed_time
+,     r.[status]
+,     r.command
+,     DatabaseName = DB_Name(r.database_id)
+,     r.wait_type
+,     r.wait_resource
+,     r.cpu_time
+,     r.reads
+,     r.writes
+,     r.logical_reads
+,     t.[text] AS [executing batch]
+,     SUBSTRING(
+                        t.[text], r.statement_start_offset / 2, 
+                        (     CASE WHEN r.statement_end_offset = -1 THEN DATALENGTH (t.[text]) 
+                                     ELSE r.statement_end_offset 
+                              END - r.statement_start_offset ) / 2 
+                   ) AS [executing statement] 
+,     p.query_plan
+FROM
+      sys.dm_exec_requests r
+CROSS APPLY
+      sys.dm_exec_sql_text(r.sql_handle) AS t
+CROSS APPLY 
+      sys.dm_exec_query_plan(r.plan_handle) AS p
+ORDER BY 
+      r.total_elapsed_time DESC;' ,  
+    @subject = 'MS-DB01-PRB server one session executing more than 30 Mintes ',  
+    @body = 'Please check Blocking,deadlocks,cpu and memory and wait types ';
+
+
+Print 'Email'
+end
+
+
+
+
+=============
+
+if exists 
+(
+SELECT sqltext.TEXT,req.session_id,req.status,req.command,req.cpu_time,req.total_elapsed_time
+FROM sys.dm_exec_requests req CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS sqltext
+where req.total_elapsed_time>600000
+--600000(10)-1800000(30)-3600000(60)
+)
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 
+	'SELECT
+      r.session_id
+,     r.start_time
+,     TotalElapsedTime_ms = r.total_elapsed_time
+,     r.[status]
+,     r.command
+,     DatabaseName = DB_Name(r.database_id)
+,     r.wait_type
+,     r.wait_resource
+,     r.cpu_time
+,     r.reads
+,     r.writes
+,     r.logical_reads
+,     t.[text] AS [executing batch]
+,     SUBSTRING(
+                        t.[text], r.statement_start_offset / 2, 
+                        (     CASE WHEN r.statement_end_offset = -1 THEN DATALENGTH (t.[text]) 
+                                     ELSE r.statement_end_offset 
+                              END - r.statement_start_offset ) / 2 
+                   ) AS [executing statement] 
+,     p.query_plan
+FROM
+      sys.dm_exec_requests r
+CROSS APPLY
+      sys.dm_exec_sql_text(r.sql_handle) AS t
+CROSS APPLY 
+      sys.dm_exec_query_plan(r.plan_handle) AS p
+ORDER BY 
+      r.total_elapsed_time DESC;' ,  
+	     @query_attachment_filename='TimeTakingQueriesList.xls'
+	    ,@attach_query_result_as_file=1
+		,@query_result_separator=',' --enforce csv
+		,@query_result_no_padding=2 --trim
+		,@query_result_width=32767  --stop wordwrap	
+        ,@subject = 'MS-DB01-PRB server one session executing more than 30 Mintes ',  
+        @body = 'Please check Blocking,deadlocks,cpu and memory and wait types ';
+
+
+Print 'Email'
+END
+
+
+============
+
+
+if exists 
+(
+SELECT sqltext.TEXT,req.session_id,req.status,req.command,req.cpu_time,req.total_elapsed_time
+FROM sys.dm_exec_requests req CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS sqltext
+where req.total_elapsed_time>3600000
+--600000(10Minutes)-1800000(30M)-3600000(60M)
+)
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com;ram@allmysons.com;ashraf.syed@allmysons.com',  
+    @query = 
+	'
+	SET NOCOUNT ON
+	SELECT
+      r.session_id
+,     r.start_time
+,     TotalElapsedTime_ms = r.total_elapsed_time
+,     r.[status]
+,     r.command
+,     DatabaseName = DB_Name(r.database_id)
+,     r.wait_type
+,     r.wait_resource
+,     r.cpu_time
+,     r.reads
+,     r.writes
+,     r.logical_reads
+,     t.[text] AS [executing batch]
+,     SUBSTRING(
+                        t.[text], r.statement_start_offset / 2, 
+                        (     CASE WHEN r.statement_end_offset = -1 THEN DATALENGTH (t.[text]) 
+                                     ELSE r.statement_end_offset 
+                              END - r.statement_start_offset ) / 2 
+                   ) AS [executing statement] 
+
+FROM
+      sys.dm_exec_requests r
+CROSS APPLY
+      sys.dm_exec_sql_text(r.sql_handle) AS t
+CROSS APPLY 
+      sys.dm_exec_query_plan(r.plan_handle) AS p
+	  --where r.total_elapsed_time>3600000 
+	  ORDER BY 
+      r.total_elapsed_time DESC;' ,  
+	     @query_attachment_filename='TimeTakingQuerieList.doc'
+	     --,@query_attachment_filename='TimeTakingQuerieList.csv'
+	     --,@query_attachment_filename='TimeTakingQuerieList.pdf'
+	    ,@attach_query_result_as_file=1
+		,@query_result_separator=',' --enforce csv
+		,@query_result_no_padding=2 --trim
+		,@query_result_width=32767  --stop wordwrap	
+        ,@subject = 'MS-DB01-PRB server one session executing more than 60 Minutes ',  
+        @body = 'PLEASE FIND THE ATTACHMENT FOR DETAILS ';
+
+
+Print 'Email'
+END
+
+

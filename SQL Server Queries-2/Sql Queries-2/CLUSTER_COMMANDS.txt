@@ -1,0 +1,14 @@
+-- You can run this to view the status of all nodes in the cluster. 
+cluster node /status 
+
+-- You can run this to view the status for all cluster resource groups 
+cluster group /status 
+
+-- You can run this to get a listing of all available cluster resources. 
+cluster resource /status 
+
+-- You can run this to initiate a failover. 
+cluster group "groupname" /move:nodeName 
+
+--take services offline or online
+cluster resource "SQL Server Agent" /online

@@ -1,0 +1,25 @@
+use development_ams
+go
+
+
+declare @yesterday date
+declare @now date
+ 
+set @now = getdate()
+set @yesterday = dateadd(day,-1,@now)
+print @yesterday
+
+insert into serverjobhistory 
+select  step_name,run_status,run_date,message,run_time,run_duration,job_id from msdb.dbo.sysjobhistory
+where run_date= CONVERT(varchar, @yesterday, 112)
+order by run_date desc,run_time desc
+
+
+Create table by follow
+step_name
+run_status
+run_date
+message
+run_time
+run_duration
+job_id

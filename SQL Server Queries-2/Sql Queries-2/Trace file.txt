@@ -1,0 +1,5 @@
+select * from sys.fn_trace_getinfo(0) -- List the number of traces running
+
+
+EXEC sp_trace_setstatus @traceid = 2, @status = 0 -- Stop trace
+EXEC sp_trace_setstatus @traceid = 2, @status = 2 -- remove Trace

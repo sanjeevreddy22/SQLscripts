@@ -1,0 +1,39 @@
+--CPU UTILIZATION PER SERVER
+
+DECLARE @ts_now bigint = (SELECT cpu_ticks/(cpu_ticks/ms_ticks) 
+                          FROM sys.dm_os_sys_info WITH (NOLOCK)); 
+
+SELECT TOP(256) SQLProcessUtilization AS [SQL Server Process CPU Utilization], 
+                SystemIdle AS [System Idle Process], 
+                100 - SystemIdle - SQLProcessUtilization 
+                AS [Other Process CPU Utilization], 
+               DATEADD(ms, -1 * (@ts_now - [timestamp]), 
+               GETDATE()) AS [Event Time] 
+FROM (SELECT record.value('(./Record/@id)[1]', 'int') AS record_id,        record.value('(./Record/SchedulerMonitorEvent/SystemHealth/SystemIdle)[1]',     'int') 
+AS[SystemIdle],record.value('(./Record/SchedulerMonitorEvent/SystemHealth/ProcessUtilization)[1]','int') 
+                     AS [SQLProcessUtilization], [timestamp] 
+         FROM (SELECT [timestamp], CONVERT(xml, record) AS [record] 
+               FROM sys.dm_os_ring_buffers WITH (NOLOCK)
+              WHERE ring_buffer_type = N'RING_BUFFER_SCHEDULER_MONITOR' 
+               AND record LIKE N'%<SystemHealth>%') AS x 
+         ) AS y 
+ORDER BY record_id DESC OPTION (RECOMPILE);
+
+
+-- CPU UTILIZATION PER DB
+
+WITH DB_CPU_Stats
+AS
+(SELECT DatabaseID, DB_Name(DatabaseID) AS [DatabaseName], SUM(total_worker_time) AS [CPU_Time_Ms]
+FROM sys.dm_exec_query_stats AS qs
+CROSS APPLY (SELECT CONVERT(int, value) AS [DatabaseID]
+              FROM sys.dm_exec_plan_attributes(qs.plan_handle)
+              WHERE attribute = N'dbid') AS F_DB
+GROUP BY DatabaseID)
+SELECT ROW_NUMBER() OVER(ORDER BY [CPU_Time_Ms] DESC) AS [row_num],
+       DatabaseName, [CPU_Time_Ms],
+       CAST([CPU_Time_Ms] * 1.0 / SUM([CPU_Time_Ms]) OVER() * 100.0 AS DECIMAL(5, 2)) AS [CPUPercent]
+FROM DB_CPU_Stats
+WHERE DatabaseID > 4 -- system databases
+AND DatabaseID <> 32767 -- ResourceDB
+ORDER BY row_num OPTION (RECOMPILE);

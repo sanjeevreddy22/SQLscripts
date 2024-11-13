@@ -1,0 +1,4 @@
+select destination_database_name 
+	, LastLogShipped = max(restore_date) 
+	, WithinXminutes = datediff(mi, max(restore_date) , getdate()) from msdb.dbo.restorehistory where destination_database_name in ('DBNAME')
+group by destination_database_name

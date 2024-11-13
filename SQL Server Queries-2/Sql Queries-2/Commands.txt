@@ -1,0 +1,66 @@
+select * from sys.fn_trace_getinfo(0) -- List the number of traces running
+
+xp_fixeddrives -- To list drives and space
+
+-- xp_cmdshell 'type E:\Trace\Maintanace2.Log' -- Read file
+-- xp_cmdshell 'dir E:\Trace\' -- List files in directory
+-- xp_cmdshell 'mkdir E:\Trace\' -- Create directory
+--*-- xp_cmdshell 'del E:\Trace\Maintanace2.Log' -- Delete File
+
+EXEC sp_trace_setstatus @traceid = 2, @status = 0 -- Stop trace
+EXEC sp_trace_setstatus @traceid = 2, @status = 2 -- remove Trace
+
+select * from msdb..sysjobs where job_id like '%A9E3C649%'
+
+SELECT * FROM fn_trace_gettable('E:\Trace\Test.trc', default);   -- Read Trace File
+GO  
+
+
+
+
+
+LIST OF IDENTIFIED QUIERES TO SHARE WITH USER
+CPU LOAD GRAPH TO SHARE WITH USER
+DISCUSS ON DEV DATABASE WHICH IS CONSUMING THE LOT OF CPU
+
+
+TEMPDB FILES RECONFIUGRE
+REPLACE MDF, LDF AND BACKUP TO DIFFERENT DRIVES TO IMPROVE IO
+DATABASE RECOVERY MODEL TO BE CHANGED TO FULL
+RECONFIGURE THE BACKUP MAINTENANCE PLAN (FULL - DAILY, LOG - 15 MINS)
+***(FULL - WEEKLY, DIFF - DAILY, LOG - 15 MINS), IF THE SIZE OF THE DATABASE IS BIG
+
+
+DR SOLUTION - 	LOGSHIPPING (EASY TO MAINTAIN) WITH BIT LATENCY, 
+		EITHER WE CAN GO FOR ALWAYON (SO THAT WE CAN HAVE READABLE SECONDRY FOR REPORTING QUERIES)
+*** IF GOING FOR NEW INFRA --> DATABASES CAN BE SEGRIGATED TO BALANCE THE LOAD
+
+*MISSING INDEXES ALREADY IDENTIFIED
+*UNSED INDEXES ALREADY IDENTIFIED
+
+
+
+ESTIMATED EXECUTION PLAN
+OPRERTAOR COST - BASED ON OPERATOR COST --> SUGGESTIONS
+
+
+
+TABLE SCAN-- NEED TO CHECK IF WE CAN CREATE INDEX,BASED ON THE SITUATION EITHER CLUSTER ON NON_CLUSTER
+SORT - DISTINCT \ ORDER BY
+PARALLEL - MAXDOP BY USING THE QUERY HINT (or) SERVER SETTING --(RECOMMENDED MAX VALUES 8, MICROSOFT)
+INDEX SCAN - FILTER IN WHERE CONDITION -- > FRAGMENTATION
+
+
+
+
+
+
+
+
+https://msdn.microsoft.com/en-us/library/ms176034.aspx
+
+https://msdn.microsoft.com/en-us/library/ms181714.aspx 	
+
+SELECT *
+FROM Sales.SalesOrderDetail
+OPTION (MAXDOP 1)

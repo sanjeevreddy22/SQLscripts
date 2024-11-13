@@ -1,0 +1,61 @@
+if exists 
+
+(
+
+SELECT sqltext.TEXT,req.session_id,req.status,req.command,req.cpu_time,req.total_elapsed_time
+FROM sys.dm_exec_requests req CROSS APPLY sys.dm_exec_sql_text(sql_handle) AS sqltext
+--where req.total_elapsed_time>3540000 and req.database_id=5 
+--600000(10Minutes)-1800000(30M)-3600000(60M)
+
+)
+
+begin
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 
+	'
+	SET NOCOUNT ON
+	SELECT
+      r.session_id
+,     r.start_time
+,     TotalElapsedTime_ms = r.total_elapsed_time
+,     r.[status]
+,     r.command
+,     DatabaseName = DB_Name(r.database_id)
+,     r.wait_type
+,     r.wait_resource
+,     r.cpu_time
+,     r.reads
+,     r.writes
+,     r.logical_reads
+,     t.[text] AS [executing batch]
+,     r.blocking_session_id
+,     SUBSTRING(
+                        t.[text], r.statement_start_offset / 2, 
+                        (     CASE WHEN r.statement_end_offset = -1 THEN DATALENGTH (t.[text]) 
+
+                                     ELSE r.statement_end_offset 
+                                          END - r.statement_start_offset ) / 2 
+                         ) AS [executing statement] 
+
+FROM
+
+      sys.dm_exec_requests r
+CROSS APPLY
+      sys.dm_exec_sql_text(r.sql_handle) AS t
+CROSS APPLY 
+      sys.dm_exec_query_plan(r.plan_handle) AS p
+	  --WHERE r.database_id=5 AND r.total_elapsed_time>3540000 
+	  ORDER BY 
+      r.total_elapsed_time DESC;' ,  
+		@query_result_separator=',' --enforce csv
+		,@query_result_no_padding=2 --trim
+		--,@query_result_width=32767  --stop wordwrap	
+        ,@subject = 'MS-DB01-PRB server one of The session executing more than 60 Minutes '; 
+
+Print 'Email'
+END
+GO
+
+

@@ -1,0 +1,37 @@
+if exists (select * from sysprocesses where spid<>blocked and blocked<>0 and datediff (mi,last_batch,getdate())>5)
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 'select * from sysprocesses where spid<>blocked and blocked<>0 and datediff (mi,last_batch,getdate())>5' ,  
+    @subject = 'Blocking with last Batch time greater than 5 minutes',  
+    @body = 'Blocking with last Batch time greater than 5 minutes';
+
+
+Print 'Email'
+end
+
+=================
+
+if exists (select * from sysprocesses where spid<>blocked and blocked<>0 and datediff (mi,last_batch,getdate())>5)
+begin
+
+EXEC msdb.dbo.sp_send_dbmail  
+    @profile_name = 'Email',  
+    @recipients = 'sanjeev@allmysons.com',  
+    @query = 'select * from sysprocesses where spid<>blocked and blocked<>0 and datediff (mi,last_batch,getdate())>5' ,  
+    @subject = 'Blocking with last Batch time greater than 5 minutes',  
+    @body = 'Blocking with last Batch time greater than 5 minutes',
+	@query_attachment_filename='BlockingQueryDetails.doc'
+	,@attach_query_result_as_file=1
+	,@query_result_separator=',' --enforce csv
+	,@query_result_no_padding=2 --trim
+	,@query_result_width=32767  --stop wordwrap;
+
+
+Print 'Email'
+end
+
+
+

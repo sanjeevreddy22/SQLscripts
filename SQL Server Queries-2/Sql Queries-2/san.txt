@@ -1,0 +1,46 @@
+select * from sysindexes  where id=1611868809
+
+select * from sysobjects where name='move'
+
+select * from sys.indexes   where object_id=1611868809
+
+
+
+
+
+select 
+distinct des.[host_name],des.[program_name],des.client_interface_name,des.login_name, db_name(der.dbid)
+from sys.dm_exec_sessions des, sysprocesses der
+where des.session_id=der.spid and des.host_name='MS-WEB01-PRD'
+
+
+
+
+/*
+Missing Index Details from ExecutionPlan1.sqlplan
+The Query Processor estimates that implementing the following index could improve the query cost by 43.4464%.
+*/
+
+/*
+USE [UAT_TRAINING_AMS]
+GO
+CREATE NONCLUSTERED INDEX [<Name of Missing Index, sysname,>]
+ON [dbo].[Move] ([CurrentWorkflowStage])
+INCLUDE ([ID],[CustomerID],[BranchID],[FromAddressInfoID],[FromPhoneInfoID],[ToAddressInfoID],[MovePricingID],[Status],[MovingDate],[MoveType],[Brand],[BookedDate],[CurrentWorkflowStep],[SentToLocalOffice],[EstimatorEmployeeID],[IsStorage],[CrewRating],[EstTime],[IsAts])
+GO
+*/
+s
+
+/*
+Missing Index Details from ExecutionPlan2.sqlplan
+The Query Processor estimates that implementing the following index could improve the query cost by 93.7753%.
+*/
+
+/*
+USE [AMS]
+GO
+CREATE NONCLUSTERED INDEX [<Name of Missing Index, sysname,>]
+ON [dbo].[QAFaultWorker] ([QADetailID])
+
+GO
+*/
