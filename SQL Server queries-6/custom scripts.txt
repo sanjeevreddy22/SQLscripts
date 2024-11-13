@@ -1,0 +1,719 @@
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --		                    This T-SQL Script retrives CPU Count                                    --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+
+SELECT cpu_count 
+FROM sys.dm_os_sys_info
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --		This T-SQL Script retrives basic info about Database Size in Total,                         --
+ --     it can be also divied into file type.                                                       --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+
+
+SELECT 
+      database_name = DB_NAME(database_id)
+ --   , log_size_mb = CAST(SUM(CASE WHEN type_desc = 'LOG' THEN size END) * 8. / 1024 AS DECIMAL(8,2))
+ --   , row_size_mb = CAST(SUM(CASE WHEN type_desc = 'ROWS' THEN size END) * 8. / 1024 AS DECIMAL(8,2))
+    , total_size_mb = CAST(SUM(size) * 8. / 1024 AS DECIMAL(8,2))
+FROM sys.master_files WITH(NOWAIT)
+GROUP BY database_id
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --		This T-SQL Script retrives info regarding High Availability used:                           --
+ --     Availability Groups, Failover Cluster , Replication,                                        --
+ --     Log Shipping, Mirroring                                                                     --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+
+ 
+-- Createing Temp table
+Create table #HA_Table
+( 
+database_name varchar(50),
+AGType varchar(50),
+AGName varchar(50),
+Mirroring_state varchar(50),
+Log_Shipping_primary_state varchar(50),
+Log_Shipping_secondary_state varchar(50),
+Replication_State varchar(50),
+Cluster varchar(50)
+)
+
+-- Availability Groups
+
+Insert into #HA_Table 
+(database_name,AGType,AGName)
+select sd.name, 
+(
+case 
+ when
+  hdrs.is_primary_replica IS NULL then  'NOT REPLICATED'
+ else
+    'REPLICATED'
+ end
+) as  AGType,
+COALESCE(grp.ag_name,'N/A') as AGName
+ from sys.databases as sd
+ left outer join sys.dm_hadr_database_replica_states  as hdrs on hdrs.database_id = sd.database_id
+ left outer join sys.dm_hadr_name_id_map as grp on grp.ag_id = hdrs.group_id
+ where sd.database_id > 4
+
+
+-- Mirroring
+
+ Update #HA_Table
+Set #HA_Table.Mirroring_state = 
+CASE
+		WHEN dm.mirroring_state is NULL THEN 'Mirroring is not configured'
+		ELSE 'Mirroring is configured'
+	END 
+FROM sys.databases d,
+sys.database_mirroring dm
+	 where d.database_id > 4
+	 and d.database_id = dm.database_id
+	 and d.name = #HA_Table.database_name
+
+ -- Replication
+
+  Update #HA_Table
+Set #HA_Table.Replication_State = 
+CASE
+		WHEN d.is_published = 1 THEN 'Replication is configured'
+		WHEN d.is_subscribed = 1 THEN 'Replication is configured'
+		WHEN d.is_merge_published = 1 THEN 'Replication is configured'
+		WHEN d.is_distributor = 1 THEN 'Replication is configured'
+		ELSE 'Replication is not configured'
+	END 
+FROM sys.databases d
+	 where d.database_id > 4
+	 and d.name = #HA_Table.database_name
+
+ -- Log Shipping
+
+ declare @LS_primary_count int
+
+ select @LS_primary_count = count(primary_database) 
+ FROM msdb..log_shipping_primary_databases 
+
+ if @LS_primary_count <=0 
+ begin
+   Update #HA_Table
+Set #HA_Table.Log_Shipping_primary_state = 'No Log Shipping'
+ end
+ else
+ begin
+	   Update #HA_Table
+	Set #HA_Table.Log_Shipping_primary_state = 
+	CASE
+			WHEN lspd.primary_database is NULL THEN 'Not Primary'
+			ELSE 'Log_Shipping is configured'
+		END 
+	FROM msdb..log_shipping_primary_databases lspd
+		 where lspd.primary_database = #HA_Table.database_name
+		 and lspd.primary_database is not NULL
+	end
+
+
+ declare @LS_secondary_count int
+
+ select @LS_secondary_count = count(secondary_database) 
+ FROM msdb..log_shipping_secondary_databases 
+
+ if @LS_secondary_count <=0 
+ begin
+   Update #HA_Table
+Set #HA_Table.Log_Shipping_secondary_state = 'No Log Shipping'
+ end
+ else
+ begin
+	   Update #HA_Table
+	Set #HA_Table.Log_Shipping_secondary_state = 
+	CASE
+			WHEN lssd.secondary_database is NULL THEN 'Not Secondary'
+			ELSE 'Log_Shipping is configured'
+		END 
+	FROM msdb..log_shipping_secondary_databases lssd
+		 where lssd.secondary_database = #HA_Table.database_name
+		 and lssd.secondary_database is not NULL
+	end
+  
+  -- Checking if SQL is Clustered
+
+  Update #HA_Table
+	Set #HA_Table.Cluster = 
+	CASE
+			WHEN SERVERPROPERTY('IsClustered') = 0 THEN 'NOT Clustered'
+			ELSE 'Clustered'
+		END 
+
+
+  -- Final Select and drop temp table
+  select * from #HA_Table
+
+  drop table #HA_Table
+
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --		This Script shows number of IOPS and Throughput_in_KB per Database                          --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+
+SET NOCOUNT ON
+ 
+DECLARE @SQLRestartDateTime Datetime
+DECLARE @TimeInSeconds Float
+ 
+SELECT @SQLRestartDateTime = create_date FROM sys.databases WHERE database_id = 2
+ 
+SET @TimeInSeconds = Datediff(s,@SQLRestartDateTime,GetDate())
+
+  PRINT 'IOPS Per Second by Database'
+  PRINT ''
+ 
+    SELECT   DB_NAME(IVFS.database_id) AS DatabaseName
+           , ROUND((SUM(num_of_reads + num_of_writes))/@TimeInSeconds,2) AS IOPS
+           , ROUND((SUM(num_of_bytes_read + num_of_bytes_written)/1024)/@TimeInSeconds,0) AS Throughput_in_KB
+      FROM sys.dm_io_virtual_file_stats(null,null) IVFS
+  GROUP BY db_name(IVFS.database_id)
+  ORDER BY DatabaseName ASC
+
+  SET NOCOUNT OFF
+
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --		        This T-SQL Script retrives data for MPA_TCO AWS calculator                          --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+declare 
+@Hostname sql_variant,
+@CPU_count int,
+@SQL_Version sql_variant,
+@SQL_Edition sql_variant,
+@SQL_BuildNumber sql_variant,
+@Instancename sql_variant,
+@SQL_Collation sql_variant,
+@RAM_allocation sql_variant,
+@Schemas_list nvarchar(max),
+@SQL_Port varchar(5)
+
+select @Hostname = SERVERPROPERTY('ComputerNamePhysicalNetBIOS') 
+SELECT @CPU_count = cpu_count FROM sys.dm_os_sys_info
+
+SELECT @SQL_Version=
+  CASE 
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '8%' THEN '2000'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '9%' THEN '2005'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '10.0%' THEN '2008'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '10.5%' THEN '2008 R2'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '11%' THEN '2012'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '12%' THEN '2014'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '13%' THEN '2016'     
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '14%' THEN '2017' 
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '15%' THEN '2019' 
+     ELSE 'unknown'
+  END,
+  @SQL_Edition = SERVERPROPERTY('Edition') ,
+  @SQL_BuildNumber = SERVERPROPERTY('ProductVersion') ,
+  @Instancename = @@servername 
+
+
+ ------
+ DECLARE @cmd NVARCHAR(MAX) = N'USE [?] SELECT ''?'' AS DatabaseName, CAST  (ROUND((SUM( ((size/128.0*1024)  - (size/128.0*1024 - CAST(FILEPROPERTY(name, ''SpaceUsed'') AS INT)/128.0*1024 ))*1.1)),2,2) as numeric(36,2)) as DBSize_KB
+FROM [?].sys.database_files
+WHERE type IN (0,1); '
+ 
+ CREATE TABLE [dbo].[#TMP1] (
+
+[DBNAME] NVARCHAR(256) NULL,
+
+[Size] int)
+
+
+INSERT INTO #TMP1 
+EXEC sys.sp_MSforeachdb @cmd
+
+delete from #TMP1 where DBNAME in ('master','model','msdb','tempdb')
+
+------------------
+
+ CREATE TABLE [dbo].[#TMP2] (
+
+[DBNAME] NVARCHAR(256) NULL,
+
+[STORED_PROCEDURE_LINES_OF_CODE] NVARCHAR(120) NULL)
+
+DECLARE @cmd2 NVARCHAR(MAX) = N'USE [?] 
+ SELECT ''?'' AS DatabaseName, x.LINES_OF_CODE as STORED_PROCEDURE_LINES_OF_CODE  from
+(
+Select        SUM( LEN(m.definition) - LEN(REPLACE(m.definition, CHAR(10), ''''))) AS LINES_OF_CODE  ,o.type_desc
+FROM    sys.sql_modules AS m
+INNER JOIN sys.objects AS o
+        ON m.[object_id] = o.[OBJECT_ID]
+INNER JOIN sys.schemas AS s
+        ON s.[schema_id] = o.[schema_id]
+                group by o.type_desc
+) x
+                                where x.type_desc = ''SQL_STORED_PROCEDURE'' ;
+
+'
+
+
+
+INSERT INTO #tmp2 ([DBNAME],[STORED_PROCEDURE_LINES_OF_CODE])
+EXEC sys.sp_MSforeachdb @cmd2
+
+delete from #TMP2 where DBNAME in ('master','model','msdb','tempdb')
+
+
+-------------
+
+ CREATE TABLE [dbo].[#TMP3] (
+
+[DBNAME] NVARCHAR(256) NULL,
+
+[TRIGGERS_LINES_OF_CODE] NVARCHAR(120) NULL)
+
+DECLARE @cmd3 NVARCHAR(MAX) = N'USE [?] 
+ SELECT ''?'' AS DatabaseName, x.LINES_OF_CODE as SQL_TRIGGER_LINES_OF_CODE  from
+(
+Select        SUM( LEN(m.definition) - LEN(REPLACE(m.definition, CHAR(10), ''''))) AS LINES_OF_CODE  ,o.type_desc
+FROM    sys.sql_modules AS m
+INNER JOIN sys.objects AS o
+        ON m.[object_id] = o.[OBJECT_ID]
+INNER JOIN sys.schemas AS s
+        ON s.[schema_id] = o.[schema_id]
+                group by o.type_desc
+) x
+                                where x.type_desc = ''SQL_TRIGGER'' ;
+
+'
+
+
+INSERT INTO #tmp3 ([DBNAME],[TRIGGERS_LINES_OF_CODE])
+EXEC sys.sp_MSforeachdb @cmd3
+
+delete from #TMP3 where DBNAME in ('master','model','msdb','tempdb')
+
+
+-------------
+
+--IOPS & THROUGHPUT
+
+SET NOCOUNT ON
+ 
+DECLARE @SQLRestartDateTime Datetime
+DECLARE @TimeInSeconds Float
+ 
+SELECT @SQLRestartDateTime = create_date FROM sys.databases WHERE database_id = 2
+ 
+SET @TimeInSeconds = Datediff(s,@SQLRestartDateTime,GetDate())
+
+
+     SELECT  
+		     @Hostname as [HostName]
+		   , @Instancename as [InstanceName]
+		   , DB_NAME(IVFS.database_id) AS DatabaseName
+		   , 'MSSQL' as [Engine Software]
+		   , @SQL_Version as [SQL Version]
+		   , @SQL_Edition as [SQL Edition]
+		   , t1.Size/1024 as DBSize_MB
+		   , 'HA ? ' as [High Availability]
+		   , 'BYOL' as LicenseModel
+		   , '' as Environment_Type
+           , ROUND((SUM(num_of_reads + num_of_writes))/@TimeInSeconds,2) AS IOPS
+           , ROUND((SUM(num_of_bytes_read + num_of_bytes_written)/1024)/@TimeInSeconds,0) AS Throughput_in_KB
+		   , t2.[STORED_PROCEDURE_LINES_OF_CODE] 
+		   , t3.[TRIGGERS_LINES_OF_CODE]
+      FROM sys.dm_io_virtual_file_stats(null,null) IVFS
+	  LEFT OUTER JOIN #TMP3 t3 ON DB_NAME(IVFS.database_id) = t3.[DBNAME]
+	  LEFT OUTER JOIN #TMP2 t2 ON DB_NAME(IVFS.database_id) = t2.[DBNAME]
+	  LEFT OUTER JOIN #TMP1 t1 ON DB_NAME(IVFS.database_id) = t1.[DBNAME]
+	  where IVFS.database_id > 4
+  GROUP BY db_name(IVFS.database_id),t2.[DBNAME],t2.[STORED_PROCEDURE_LINES_OF_CODE] ,t3.[TRIGGERS_LINES_OF_CODE],t1.Size
+  ORDER BY DB_NAME(IVFS.database_id) ASC
+
+  SET NOCOUNT OFF
+
+
+drop table #TMP1
+drop table #TMP2 
+drop table #TMP3
+
+
+
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --   This is general script to gather Lines of code for defined type of object_id                  --
+ --   First of all run just Select from Sub-query to get list of Object Types                       --
+ --   Then in genral statement just replace in those lines object which is required :               --
+ --   VIEW ; SQL_TABLE_VALUED_FUNCTION ; SQL_STORED_PROCEDURE ; SQL_TRIGGER ; SQL_SCALAR_FUNCTION   --
+ --                                                                                                 --
+ --    Select x.LINES_OF_CODE as STORED_PROCEDURE_LINES_OF_CODE                                     --
+ --    where x.type_desc = 'SQL_STORED_PROCEDURE'                                                   --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+ 
+ 
+ Select x.LINES_OF_CODE as STORED_PROCEDURE_LINES_OF_CODE  from
+(
+        Select        SUM( LEN(m.definition) - LEN(REPLACE(m.definition, CHAR(10), ''))) AS LINES_OF_CODE  ,o.type_desc
+        FROM    sys.sql_modules AS m
+        INNER JOIN sys.objects AS o
+                ON m.[object_id] = o.[OBJECT_ID]
+        INNER JOIN sys.schemas AS s
+                ON s.[schema_id] = o.[schema_id]
+                        group by o.type_desc
+) x
+                                where x.type_desc = 'SQL_STORED_PROCEDURE' 
+
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --   This is general script to gather Lines of code for defined type of object_id                  --
+ --   First of all run just Select from Sub-query to get list of Object Types                       --
+ --   Then in genral statement just replace in those lines object which is required :               --
+ --   VIEW ; SQL_TABLE_VALUED_FUNCTION ; SQL_STORED_PROCEDURE ; SQL_TRIGGER ; SQL_SCALAR_FUNCTION   --
+ --                                                                                                 --
+ --    Select x.LINES_OF_CODE as STORED_PROCEDURE_LINES_OF_CODE                                     --
+ --    where x.type_desc = 'SQL_STORED_PROCEDURE'                                                   --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+
+ Select x.LINES_OF_CODE as SQL_TRIGGER_LINES_OF_CODE  from
+(
+Select        SUM( LEN(m.definition) - LEN(REPLACE(m.definition, CHAR(10), ''))) AS LINES_OF_CODE  ,o.type_desc
+FROM    sys.sql_modules AS m
+INNER JOIN sys.objects AS o
+        ON m.[object_id] = o.[OBJECT_ID]
+INNER JOIN sys.schemas AS s
+        ON s.[schema_id] = o.[schema_id]
+                group by o.type_desc
+) x
+                                where x.type_desc = 'SQL_TRIGGER'
+
+
+
+
+ -----------------------------------------------------------------------------------------------------
+ --                                                                                                 --
+ --		This T-SQL Script retrives SQL Version ,Edition, Build Number and Instance Name            --
+ --                                                                                                 --
+ -----------------------------------------------------------------------------------------------------
+
+
+declare 
+@Hostname sql_variant,
+@SQL_Version sql_variant,
+@SQL_Edition sql_variant,
+@SQL_BuildNumber sql_variant,
+@Instancename sql_variant
+
+
+SELECT @SQL_Version=
+  CASE 
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '8%' THEN 'SQL2000'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '9%' THEN 'SQL2005'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '10.0%' THEN 'SQL2008'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '10.5%' THEN 'SQL2008 R2'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '11%' THEN 'SQL2012'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '12%' THEN 'SQL2014'
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '13%' THEN 'SQL2016'     
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '14%' THEN 'SQL2017' 
+     WHEN CONVERT(VARCHAR(128), SERVERPROPERTY ('productversion')) like '15%' THEN 'SQL2019' 
+     ELSE 'unknown'
+  END,
+  @SQL_Edition = SERVERPROPERTY('Edition') ,
+  @SQL_BuildNumber = SERVERPROPERTY('ProductVersion') ,
+  @Instancename = @@servername 
+
+  Select 
+   @Instancename as InstanceName
+  ,@SQL_Version as SQLVersion
+  ,@SQL_Edition as SQLEdition
+  ,@SQL_BuildNumber as SQLBuildNumber
+
+
+
+--The following query queries all databases on an instance and will return databases which are utilising Enterprise features:
+
+IF OBJECT_ID('tempdb.dbo.##enterprise_features') IS NOT NULL
+DROP TABLE ##enterprise_features 
+CREATE TABLE ##enterprise_features
+(
+dbname       SYSNAME,
+feature_name VARCHAR(100),
+feature_id   INT
+)
+EXEC sp_msforeachdb
+N' USE [?]
+IF (SELECT COUNT(*) FROM sys.dm_db_persisted_sku_features) >0
+BEGIN
+INSERT INTO ##enterprise_features
+SELECT dbname=DB_NAME(),feature_name,feature_id
+FROM sys.dm_db_persisted_sku_features
+END '
+SELECT *
+FROM   ##enterprise_features
+
+--If the above query returns no results that means they are not using any feature which is edition specific and we can easily move from one version to another version.
+
+
+
+///////////
+
+database_size_CL_recovery_model
+
+
+SELECT d.name
+	,ROUND(SUM(CAST(mf.size AS bigint)) * 8 / 1024, 0) Size_MBs
+    ,(SUM(CAST(mf.size AS bigint)) * 8 / 1024) / 1024 AS Size_GBs
+,d.compatibility_level
+,version_name =
+CASE compatibility_level
+WHEN 80  THEN 'SQL Server 2000'
+WHEN 90  THEN 'SQL Server 2005'
+WHEN 100 THEN 'SQL Server 2008/R2'
+WHEN 110 THEN 'SQL Server 2012'
+WHEN 120 THEN 'SQL Server 2014'
+WHEN 130 THEN 'SQL Server 2016'
+WHEN 140 THEN 'SQL Server 2017'
+WHEN 150 THEN 'SQL Server 2019'
+WHEN 160 THEN 'SQL Server 2022'
+ELSE 'new but not known yet - '+CONVERT(varchar(50),compatibility_level)
+END
+,d.recovery_model_desc
+FROM sys.master_files mf
+INNER JOIN sys.databases d ON d.database_id = mf.database_id
+WHERE d.database_id > 4
+GROUP BY d.name,d.compatibility_level,d.recovery_model_desc
+
+
+
+server_level_triggers
+
+USE master
+SELECT name, type, type_desc, is_disabled FROM sys.server_triggers
+
+
+service_broker_endpoints
+
+SELECT name, state_desc FROM sys.endpoints
+WHERE type=3
+
+total_transactions.
+
+DECLARE       @Days  INT
+
+Declare       @Last_Restarted_Date DATETIME;
+
+SELECT @Days=DATEDIFF(D,sqlserver_start_time, GETDATE()),
+       @Last_Restarted_Date= sqlserver_start_time
+                     FROM sys.dm_os_sys_info
+
+SELECT @Days = CASE WHEN @Days = 0 THEN 1 ELSE @Days END; 
+
+/*** Get total transactions occurred in SQL Server Instance since last restart ***/
+
+SELECT  @Last_Restarted_Date   AS 'SQL Server Restart TimeStamp',
+             @@SERVERNAME      AS 'Instance Name',
+             cntr_value        AS 'Total Transactions Since Last Restart',
+             cntr_value / @Days  AS 'Avg Transactions\Day',
+             cntr_value / (@Days*24) AS 'Avg Transactions\Hour',
+             cntr_value / (@Days*24*60) AS 'Avg Transactions\Min',
+             cntr_value / (@Days*24*60*60)     AS 'Avg Transactions\Sec'
+FROM    sys.dm_os_performance_counters
+WHERE   counter_name = 'Transactions/sec'
+        AND instance_name = '_Total';
+
+
+SQLServer-Linked_Servers_Count
+
+/* Run on each instance.  */
+
+select * from sys.servers where server_id>0;
+
+
+/* In-Memory OLTP (memory-optimized tables)
+
+SQL Server provides an In-Memory OLTP capability. It allows usage of memory-optimized tables, memory-optimized table types, and natively compiled SQL modules
+to run workloads that have high-throughput and low-latency requirements for transactional processing.
+
+Important: In-Memory OLTP is supported only in the Business Critical tier in Azure SQL Managed Instance. It's not supported in the General Purpose tier.
+
+*/
+
+
+EXEC sp_MSforeachdb 'USE [?]
+select ''?'' ,
+(SELECT count(*) FROM sys.tables WHERE is_memory_optimized=1) +
+(SELECT count(*) FROM sys.table_types WHERE is_memory_optimized=1) +
+(SELECT count(*) FROM sys.sql_modules WHERE uses_native_compilation=1) as in_memory_objects'
+
+/* List encrypted databases */
+select name, database_id, is_encrypted from sys.databases  where database_id>4;
+
+/* check how master key is encrypted */
+select name, is_master_key_encrypted_by_server from sys.databases where name = 'master'
+
+/* check details how databases are encrypted */
+SELECT db_name(database_id) name,DEK.database_id,DEK.create_date,encryption_state,encryptor_thumbprint,encryptor_type
+from  sys.dm_database_encryption_keys DEK
+where database_id>4
+
+
+SELECT * FROM sys.certificates;
+
+SELECT * FROM sys.symmetric_keys;
+
+
+SQLServer-Encrypted_Objects
+
+/* run on each instance, it will executed on each database via sp_MSforeachdb */
+
+EXEC sp_MSforeachdb 'USE [?]
+select ''?'' , count(*) as encrypted_objects
+from sys.sql_modules s inner join
+sys.objects o on s.object_id = o.object_id
+where type in (''p'',''tr'',''FN'',''tf'',''v'') and definition is null'
+
+
+/* MSDB keeps history of backups (and restores). Below query check how long is the history, plus it shows size of msdb. */
+
+use msdb
+
+select min(backup_start_date) min_backup_start_date,max(backup_start_date) as max_backup_start_date, datediff(day, min(backup_start_date) , max(backup_start_date)) backuplog_retention_days, count(*) msdb_backupset_rows from msdb.dbo.backupset  ;
+
+SELECT @@SERVERNAME as instance,  DB_NAME() dbname
+, substring(df.name,1,30) AS FileName
+, CONVERT(varchar, CAST(size/128.0 AS money), 1) as allocated_MB
+, CONVERT(varchar, cast(FILEPROPERTY(df.name,'SpaceUsed')/128.0 as money) ,1) AS used_MB
+FROM sys.database_files df LEFT OUTER JOIN sys.data_spaces ds  
+ON df.data_space_id = ds.data_space_id      
+where df.type_desc='ROWS'
+
+
+SQLServer_customized_parameters
+
+   /* Query SQL Server for any non-default configuration settings.    */
+      SET NOCOUNT ON;
+
+     -- declarations
+      DECLARE
+            @version VARCHAR(128),
+            @charindex BIGINT,
+            @majversion VARCHAR(MAX),
+            @temp SQL_VARIANT;
+
+       -- set local variables
+       SELECT @version = CAST(SERVERPROPERTY('ProductVersion') AS VARCHAR(128));
+       SELECT @charindex = CHARINDEX('.', @version);
+       SET @majversion = SUBSTRING(@version, 1, @charindex-1);
+       IF @majversion IN (9,10)
+       SET @temp = 20  ELSE SET @temp = 10
+
+       -- load all defaults into table variable
+       DECLARE @defaults TABLE (
+             id int IDENTITY(1,1),
+             config VARCHAR(128),
+             value SQL_VARIANT
+        );
+
+       INSERT @defaults VALUES
+              ('access check cache bucket count', 0),
+              ('access check cache quota', 0),
+              ('Ad Hoc Distributed Queries', 0),
+              ('affinity I/O mask', 0),
+              ('affinity64 I/O mask', 0),
+              ('affinity mask', 0),
+              ('affinity64 mask', 0),
+              ('Agent XPs',0),
+              ('allow updates', 0),
+              ('backup compression default', 0),
+              ('blocked process threshold', 0),
+              ('c2 audit mode', 0),
+              ('clr enabled', 0),
+              ('common criteria compliance enabled', 0),
+              ('contained database authentication', 0),
+              ('cost threshold for parallelism', 5),
+              ('cross db ownership chaining', 0),
+              ('cursor threshold', -1),
+              ('Database Mail XPs', 0),
+              ('default full-text language', 1033),
+              ('default language', 0),
+              ('default trace enabled', 1),
+              ('disallow results from triggers', 0),
+              ('EKM provider enabled', 0),
+              ('filestream_access_level', 0),
+              ('fill factor(%)', 0),
+              ('ft crawl bandwidth (max)', 100),
+              ('ft crawl bandwidth (min)', 0),
+              ('ft notify bandwidth (max)', 100),
+              ('ft notify bandwidth (min)', 0),
+              ('index create memory(KB)', 0),
+              ('in-doubt xact resolution', 0),
+              ('lightweight pooling', 0),
+              ('locks', 0),
+              ('max degree of parallelism', 0),
+              ('max full-text crawl range', 4),
+              ('max server memory(MB)', 2147483647),
+              ('max text repl size(B)', 65536),
+              ('max worker threads', 0),
+              ('media retention', 0),
+              ('min memory per query(KB)', 1024),
+              ('min server memory(MB)', 0),
+              ('nested triggers', 1),
+              ('network packet size(B)', 4096),
+              ('Ole Automation Procedures', 0),
+              ('open objects', 0),
+              ('optimize for ad hoc workloads', 0),
+              ('PH timeout(s)', 60),
+              ('precompute rank', 0),
+              ('priority boost', 0),
+              ('query governor cost limit', 0),
+              ('query wait(s)', -1),
+              ('recovery interval(min)', 0),
+              ('remote access', 1),
+              ('remote admin connections', 0),
+              ('remote login timeout(s)', @temp),
+              ('remote proc trans', 0),
+              ('remote query timeout(s)', 600),
+              ('Replication XPs', 0),
+              ('scan for startup procs', 0),
+              ('server trigger recursion', 1),
+              ('set working set size', 0),
+              ('show advanced options', 0),
+              ('SMO and DMO XPs', 1),
+              ('transform noise words', 0),
+              ('two digit year cutoff', 2049),
+              ('user connections', 0),
+              ('user options', 0),
+              ('xp_cmdshell', 0);
+   
+        -- now pull back which ones you're using that aren't defaults
+        SELECT
+              s.name [Configuration],
+              s.value_in_use [Yours],
+              d.Value [Default]
+        FROM
+             @defaults d JOIN sys.configurations s
+                ON s.name LIKE '%' + d.config + '%'
+                AND d.Value <> s.value_in_use
+        WHERE
+               s.name <> 'show advanced options'
+        ORDER BY
+               s.name

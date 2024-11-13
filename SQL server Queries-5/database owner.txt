@@ -1,0 +1,4 @@
+use [master]
+go
+select db.name as [Database Name],sp.name [SQL Login Name] from sys.databases db left join sys.server_principals sp on db.owner_sid=sp.sid
+where database_id>5

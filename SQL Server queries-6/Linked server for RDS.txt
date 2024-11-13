@@ -1,0 +1,3 @@
+EXEC master.dbo.sp_addlinkedserver @server = N'EC2AMAZ-J4C3CIP', @srvproduct='', @provider=N'SQLNCLI', @datasrc=N'172.31.1.163';
+EXEC master.dbo.sp_addlinkedsrvlogin @rmtsrvname=N'EC2AMAZ-J4C3CIP',@useself=N'False',@locallogin=NULL,@rmtuser=N'sa',@rmtpassword='P@ssWord2021';
+GO

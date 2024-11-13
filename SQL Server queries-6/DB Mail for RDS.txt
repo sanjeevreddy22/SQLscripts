@@ -1,0 +1,45 @@
+
+
+USE msdb
+GO
+
+EXECUTE msdb.dbo.sysmail_add_profile_sp  
+    @profile_name         = 'Notifications',  
+    @description          = 'Profile used for sending outgoing notifications using Amazon SES.';
+GO
+
+
+USE msdb
+GO
+
+EXECUTE msdb.dbo.sysmail_add_account_sp
+    @account_name        = 'SES',
+    @description         = 'Mail account for sending outgoing notifications.',
+    @email_address       = 'nobody@example.com',
+    @display_name        = 'Automated Mailer',
+    @mailserver_name     = 'vpce-0a1b2c3d4e5f-01234567.email-smtp.us-west-2.vpce.amazonaws.com',
+    @port                = 587,
+    @enable_ssl          = 1,
+    @username            = 'Smtp_Username',
+    @password            = 'Smtp_Password';
+GO
+
+EXECUTE msdb.dbo.sysmail_add_profileaccount_sp
+    @profile_name        = 'Notifications',
+    @account_name        = 'SES',
+    @sequence_number     = 1;
+GO
+
+USE msdb
+GO
+
+EXECUTE msdb.dbo.sysmail_add_principalprofile_sp  
+    @profile_name       = 'Notifications',  
+    @principal_name     = 'public',  
+    @is_default         = 1;
+GO
+
+
+SELECT * FROM msdb.dbo.rds_fn_sysmail_allitems(); --WHERE sent_status='sent' or 'failed' or 'unsent'
+
+

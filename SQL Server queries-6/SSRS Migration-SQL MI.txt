@@ -1,0 +1,39 @@
+
+On-premises
+
+
+Pre-requisite
+Create the credentials on-premsies SQL server
+
+1. Deployed the one VM------- Vnet peering from app VM Vnet to MI Vnet
+2. deployed the Azure SQL MI
+3. Installed the SSRS on New VM
+4. deploy the blob storage
+5. Migrate the user databases to MI
+   Stop the SSRS services
+6. take the SSRS DBs to Blob
+7. Restore databases on on SQL MI
+8. Configure the SSRS on New Azure VM
+9. Change the DBs to Azure SQL MI
+10. apply the both links on Azure SQL VM
+11. take the certification key backup from on-premises
+12. Restore certification key it on SQL MI
+13. delete the duplicate key on MI
+14. Test the URLS and Reports
+15. Check the Report Jobs any(if any)
+16. Check the connection string on SSRS ports(if any)
+
+Optional:
+16. Check the Report DBs compaability levels and change the latest version
+
+stop ssrs and take the ssrs dbs backups
+restore on MI
+change the compatability level ?
+josb created automitically ?--- 
+
+
+
+
+
+Register SQL extention in VM?
+SSRS License cost 

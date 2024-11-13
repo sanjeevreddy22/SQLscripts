@@ -1,0 +1,46 @@
+The process of restoring only one table from SQL backup contains two most important steps; first restoration of entire SQL backup and second is copying the required table in the destination database.
+Restoration Of Complete Backup
+The first thing that needs to be done is restoration of complete SQL database backup and transaction log backups up to the point prior to deletion of the required table. It is recommended to stop the transaction process before the point when the table was deleted.
+This is done with the help of the STOPAT command. Use the below command to restore table from SQL database by using STOPAT parameter.
+RESTORE DATABASE Ariadatabase FROM DISK = 'C:\Ariadatabase.BAK'
+WITH NORECOVERY
+GO
+RESTORE LOG Ariadatabase FROM DISK = 'C:\Ariadatabase.TRN'
+WITH RECOVERY,
+STOPAT = 'May 19, 2016 11:40:00 AM'
+GO
+Copying Table At Target Database
+The next step is to copy the data from the restore backup to the destination database. One of the below-mentioned techniques can be used, depending upon the current scenario:
+The table exists but some rows have been deleted from it
+If you just want to insert some missing rows in the table, use INSERT statement in combination with SELECT statement.
+USE Ariadatabase
+GO
+SET IDENTITY_INSERT Employee.Details ON
+INSERT INTO Employee.Details
+(Name, ID, Age)
+SELECT * FROM Ariadatabase_Restored.Employee.Details
+SET IDENTITY_INSERT Employee.Details OFF
+In case the entire table was dropped
+In this case, use SELECT INTO statement for copying rows and the table structure in the database.
+USE Ariadatabase
+GO
+SELECT * INTO Employee.Details
+FROM Ariadatabase_Restored.Employee.Details
+If a few rows were damaged due to any update or some unwanted event
+In such a case MERGE statement is used. This statement updates damaged data, inserts data that is missing and deletes the rows that should not exist in the table.
+USE Ariadatabase
+GO
+SET IDENTITY_INSERT Employee.Details ON
+MERGE Employee.Details dest
+USING (SELECT * FROM Ariadatabase_Restored. Employee.Details src) AS src
+ON dest.Name = src.Name
+WHEN MATCHED THEN UPDATE
+SET dest.ID = src.ID, dest.Age = src.Age
+WHEN NOT MATCHED THEN INSERT
+(Name, ID, Age) VALUES
+(src.Name, src.ID, src.Age);
+SET IDENTITY_INSERT Employee.Details OFF
+Recreate indexes, constraints or triggers if required.
+In case there are any referential integrity issues, resolve them manually.
+Run DBCC CHECKTABLE command to verify the data integrity of the table
+DBCC CHECKTABLE (“Employee.Details”)

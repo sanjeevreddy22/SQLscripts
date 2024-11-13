@@ -1,0 +1,27 @@
+SELECT DISTINCT TOP 1 T1.server AS [Server Name],
+@@SERVERNAME AS [Instance_name],
+'MSSQL:JOBFAILED' AS object,
+'master' AS SQLName,
+SUBSTRING(T2.name,1,140) AS [dbName],
+
+CAST(CONVERT(DATETIME,CAST(run_date AS CHAR(8)),101) AS CHAR(11)) AS [Failure Date],
+STUFF(STUFF(RIGHT(REPLICATE('0', 6) + CAST(T1.run_time as varchar(6)), 6), 3, 0, ':'), 6, 0, ':') as [run_time],
+STUFF(STUFF(STUFF(RIGHT(REPLICATE('0', 8) + CAST(T1.run_duration as varchar(8)), 8), 3, 0, ':'), 6, 0, ':'), 9, 0, ':') as [run_duration] ,
+STUFF(STUFF(RIGHT(REPLICATE('0', 6) + CAST(T1.run_time+T1.RUN_DURATION as varchar(6)), 6), 3, 0, ':'), 6, 0, ':') AS [time_of_failure],
+DATEDIFF(MINUTE,STUFF(STUFF(RIGHT(REPLICATE('0', 6) + CAST(T1.run_time as varchar(6)), 6), 3, 0, ':'), 6, 0, ':'),CONVERT (Time,GETDATE())) as [Time_diff],
+
+CASE T1.run_status
+WHEN 0 THEN '0'
+WHEN 1 THEN '1'
+WHEN 2 THEN '2'
+WHEN 3 THEN '3'
+WHEN 4 THEN '4'
+END AS ExecutionStatus
+FROM
+msdb..sysjobhistory T1 INNER JOIN msdb..sysjobs T2 ON T1.job_id = T2.job_id
+WHERE
+T1.run_status = 0
+AND t2.name like '%DBA%'
+AND run_date >= CONVERT(CHAR(8), (SELECT DATEADD (dd,-1, GETDATE())), 112)
+AND DATEDIFF(MINUTE,STUFF(STUFF(RIGHT(REPLICATE('0', 6) + CAST(T1.run_time as varchar(6)), 6), 3, 0, ':'), 6, 0, ':'),CONVERT (Time,GETDATE())) < 3
+order by run_time desc;

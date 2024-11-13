@@ -1,0 +1,18 @@
+select 
+       DatabaseName,
+       ObjectName, 
+       IndexName,
+       REPLACE(SUBSTRING(CAST(ExtendedInfo as varchar(1000)),CHARINDEX('<Fragmentation>',CAST(ExtendedInfo as varchar(100)))+15,LEN(CAST(ExtendedInfo as varchar(100)))),'</Fragmentation></ExtendedInfo>','') as 'fragmentation'
+       ,SUBSTRING(CAST(ExtendedInfo as varchar(1000)),CHARINDEX('<PageCount>',CAST(ExtendedInfo as varchar(100)))+11,CHARINDEX('</PageCount>',CAST(ExtendedInfo as varchar(100)))-26) as 'Page Count'
+       ,ExtendedInfo
+       ,StartTime,DATEDIFF(ss,StartTime,EndTime) as 'Duration'
+       ,CommandType,
+       Command
+from 
+       dba_CommandLog 
+where
+       CommandType = 'ALTER_INDEX' and
+       --SchemaName = 'crp' and
+--DatabaseName = 'tc10' and
+Command like '%REBUILD%' and
+       StartTime > '2020-11-15 00:00:00'

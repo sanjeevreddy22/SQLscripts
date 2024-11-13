@@ -1,0 +1,19 @@
+DECLARE @counter INT = 23;
+WHILE @counter <= 100
+BEGIN
+    DECLARE @uniqueSuffix VARCHAR(10) = '_' + CAST(@counter AS VARCHAR(10));
+    DECLARE @newDatabaseName1 NVARCHAR(100) = 'wfUser_MediumDemo1' + @uniqueSuffix;
+    --DECLARE @backupFilePath1 NVARCHAR(500) = 'D:\MSSQLServer\Databases\Backups\wfUser_MediumDemo1.bak';
+    DECLARE @sql NVARCHAR(MAX);
+    SET @sql = 'CREATE DATABASE [' +@newDatabaseName1+'] ON
+( FILENAME = N''"/var/opt/mssql/data/"' +@newDatabaseName1+ '.mdf'' ),
+( FILENAME = N''"/var/opt/mssql/log/"' +@newDatabaseName1+ '_log.ldf'' )
+ FOR ATTACH
+GO'
+
+Print @SQL
+
+---EXEC sp_executesql @sql;
+	
+   SET @counter = @counter + 1;
+END

@@ -1,0 +1,5 @@
+Select db_name() as DBName, c.name as DB_Role, a.name as Role_Member, a.type_desc as UserType
+From sys.database_principals a
+Inner Join sys.database_role_members b ON a.principal_id=b.member_principal_id
+Inner Join sys.database_principals c ON c.principal_id = b.role_principal_id
+Where a.name <> ''dbo'' and a.type_desc not like ''%Role%''

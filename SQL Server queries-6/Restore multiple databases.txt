@@ -1,0 +1,16 @@
+DECLARE @counter INT = 1;
+WHILE @counter <= 100
+BEGIN
+    DECLARE @uniqueSuffix VARCHAR(10) = '_' + CAST(@counter AS VARCHAR(10));
+    DECLARE @newDatabaseName1 NVARCHAR(100) = 'wfUser_MediumDemo1' + @uniqueSuffix;
+    DECLARE @backupFilePath1 NVARCHAR(500) = 'D:\MSSQLServer\Databases\Backups\wfUser_MediumDemo1.bak';
+    DECLARE @sql NVARCHAR(MAX);
+    SET @sql = 'USE master;
+                RESTORE DATABASE ' + QUOTENAME(@newDatabaseName1) + '
+                FROM DISK = ''' + @backupFilePath1 + '''
+				WITH  MOVE N''wfUser_SchwindtGmbH'' TO N''D:\MSSQLServer\Databases\Data\'+@newDatabaseName1+'.mdf'',
+				MOVE N''wfUser_SchwindtGmbH_log'' TO N''D:\MSSQLServer\Databases\Log\'+@newDatabaseName1+'_log.ldf'',  NOUNLOAD, REPLACE;'
+    EXEC sp_executesql @sql;
+	
+    SET @counter = @counter + 1;
+END

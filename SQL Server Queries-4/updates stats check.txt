@@ -1,0 +1,15 @@
+-- Checking the DB Stats  
+select a.id as 'ObjectID', isnull(a.name,'Heap') as 'IndexName', b.name as 'TableName',   
+stats_date (id,indid) as stats_last_updated_time   
+from sys.sysindexes as a   
+inner join sys.objects as b   
+on a.id = b.object_id   
+where b.type = 'U'  
+
+
+For more information about database statistics review, see DBCC SHOW_STATISTICS.
+
+To update database statistics on a single database that uses the FULLSCAN option, run the following query:
+
+-- Update DB Stats  
+EXEC sp_MSforeachtable 'UPDATE STATISTICS ? WITH FULLSCAN'  
