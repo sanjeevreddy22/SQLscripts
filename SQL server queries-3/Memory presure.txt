@@ -1,0 +1,7 @@
+
+select * from [dbo].[DS_ORDER_DELIVERY_ARCHIVE] d inner join [DS_ORDER_DELIVERY_AN] b on b.ord_delivery_id=  d.ord_delivery_id
+
+select * from [dbo].[DS_ORDER_DELIVERY_ARCHIVE]
+
+select * from [DS_ORDER_DELIVERY_AN]
+

@@ -1,0 +1,117 @@
+// Pythian child theme common js functions (loaded on all pages)
+
+(function($) {
+	
+	// IE version detection
+	var ie = (function(){
+	var undef,
+	v = 3,
+	div = document.createElement('div'),
+	all = div.getElementsByTagName('i');
+	while (
+		div.innerHTML = '<!--[if gt IE ' + (++v) + ']><i></i><![endif]-->',
+		all[0]
+	);
+	return v > 4 ? v : undef;
+	}());
+	// END IE version detection
+	
+	// Placeholder for older browsers
+	$('[placeholder]').focus(function() {
+        var input = $(this);
+        if (input.val() == input.attr('placeholder')) {
+            input.val('');
+            input.removeClass('placeholder');
+        }
+    }).blur(function() {
+        var input = $(this);
+        if (input.val() == '' || input.val() == input.attr('placeholder')) {
+            input.addClass('placeholder');
+            input.val(input.attr('placeholder'));
+        }
+    }).blur();
+    $('[placeholder]').parents('form').submit(function() {
+        $(this).find('[placeholder]').each(function() {
+            var input = $(this);
+            if (input.val() == input.attr('placeholder')) {
+                input.val('');
+            }
+        })
+    });	
+	// END - Placeholder for older browsers
+		
+	// Subscribe form banner slide down
+	$( '.subscribe-banner .subscribe-button' ).click( function() {
+		//if ( $( '#banner-subscribe-form' ).css( 'display' ) == 'none' ) {
+			$( '#banner-subscribe-form' ).slideToggle();
+		//}
+		return false;
+	});
+	// END - Subscribe form banner slide down
+	
+	// Detect idevice and show special form
+	var isiPhone = navigator.userAgent.toLowerCase().indexOf("iphone");
+	var isiPad = navigator.userAgent.toLowerCase().indexOf("ipad");
+	var isiPod = navigator.userAgent.toLowerCase().indexOf("ipod");
+
+    if ( (isiPhone > -1) || (isiPad > -1) || (isiPod > -1) ) {
+		$( '.non-idevice-form' ).hide();
+		$( '.idevice-form' ).show();
+    }
+	
+	// GA Event tracking for widgets in sidebar
+	// Image Widgets - Get the ALT of the image being clicked and submit it as an event
+	$( '.sidebar .widget_sp_image > a' ).click( function() {
+		var title = $( this ).find( 'img' ).attr( 'alt' );
+		ga( 'send', 'event', 'Blog Sidebar', 'click', title );
+	});
+
+	// Popular Posts - Get the Title of the link being clicked and submit it as an event
+	$( '.sidebar .popular-posts a' ).click( function() {
+		var title = $( this ).attr( 'title' );
+		var stream = $( '.sidebar .popular-posts .widgettitle' ).html();
+		ga( 'send', 'event', 'Blog Sidebar', 'click', stream + ' - ' + title );
+	});
+	
+	// Record any click to pythian.com but NOT containing /blog
+	// Popular Posts - Get the Title of the link being clicked and submit it as an event
+	$( "a[href*='pythian.com']" ).not( "[href*='pythian.com/blog']" ).click( function() {
+		ga( 'send', 'event', 'Link to main site from blog', 'click', 'link' );
+	});
+	
+}) (jQuery);
+
+// Responsive Menu tweaks
+var responsiveMenuCutoff = 920;
+jQuery('.l-subheader-h .w-nav-list-h .menu-item.menu-item-has-children.level_1 > .w-nav-item-h > a[href="#"]').click( function() { return false; } );
+jQuery('.l-subheader-h .w-nav-list-h .menu-item.menu-item-has-children.level_1 > .w-nav-item-h').hover (function() {
+	if (jQuery(window).width() >= responsiveMenuCutoff) {
+		jQuery('.l-subheader-h .w-nav-list-h .menu-item.menu-item-has-children.level_1 .w-nav-list.level_2').stop().slideUp('fast');
+		
+		// Else, use the menu item that was just clicked
+		var link_x = jQuery(this).parent().offset();
+
+		link_x = link_x.left;	
+		jQuery(this).parent().find('.w-nav-list.level_2').css('padding-left', link_x + 'px');
+		
+		if (jQuery(this).parent().hasClass('activemenu')) {
+			//jQuery('.l-subheader-h .w-nav-list-h .menu-item.menu-item-has-children.level_1').removeClass('activemenu');
+		} else {
+			//jQuery('.l-subheader-h .w-nav-list-h .menu-item.menu-item-has-children.level_1').removeClass('activemenu');
+			jQuery(this).parent().find('.w-nav-list.level_2').stop().slideDown('fast');
+			//jQuery(this).parent().addClass('activemenu');
+		}
+	}
+	return false;
+},
+function() {
+	if (jQuery(window).width() >= responsiveMenuCutoff) {
+		jQuery('.l-subheader-h .w-nav-list-h .menu-item.menu-item-has-children.level_1 .w-nav-list.level_2').stop().slideUp('fast');
+	}
+});
+// END Responsive Menu tweaks
+
+// Smooth Scroll every thing that links directly to an anchor
+jQuery( 'a[href^=#]' ).smoothScroll({
+	speed: 700
+});	

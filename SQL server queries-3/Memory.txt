@@ -1,0 +1,4 @@
+SELECT (physical_memory_in_use_kb/1024) AS Used_Memory_By_SqlServer_MB
+FROM sys.dm_os_process_memory
+
+https://www.mssqltips.com/sqlservertip/4182/setting-a-fixed-amount-of-memory-for-sql-server/

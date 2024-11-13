@@ -1,0 +1,2 @@
+SELECT TextData, Duration/1000 as duration, Reads, Writes, CPU, StartTime,databasename,LoginName,ApplicationName
+FROM fn_trace_gettable('E:\OnGuard_Profiler_slowness\Batchslow_Now20190611011104.trc',default) order by duration desc

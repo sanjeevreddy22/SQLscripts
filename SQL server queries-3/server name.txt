@@ -1,0 +1,20 @@
+Running the following will show the current TSQL value for this property:
+
+SELECT @@SERVERNAME;
+GO
+
+To Fix the Problem
+
+If the @@ServerName property is NULL, running the following will fix the issue- but only after you restart the SQL Server instance. Yep, fixing this requires an outage.
+
+EXEC sp_addserver '<LocalServerName>', local;
+GO
+
+If the @@ServerName property is incorrect, run the following to correct the issue:
+
+EXEC sp_dropserver 'old_name';
+GO
+EXEC sp_addserver 'new_name', 'local';
+GO
+
+https://blog.sqlauthority.com/2015/07/13/sql-server-how-to-change-server-name/

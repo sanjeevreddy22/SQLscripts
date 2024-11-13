@@ -1,0 +1,1515 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<!-- saved from url=(0085)https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/ -->
+<html class="js flexbox flexboxlegacy canvas canvastext webgl no-touch geolocation postmessage websqldatabase indexeddb hashchange history draganddrop websockets rgba hsla multiplebgs backgroundsize borderimage borderradius boxshadow textshadow opacity cssanimations csscolumns cssgradients cssreflections csstransforms csstransforms3d csstransitions fontface generatedcontent video audio localstorage sessionstorage webworkers applicationcache svg inlinesvg smil svgclippaths gr__mssqltips_com" lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta http-equiv="Content-Language" content="en-us">
+
+<!-- <meta http-equiv="X-UA-Compatible" content="IE=9" /> -->
+<link rel="SHORTCUT ICON" href="https://www.mssqltips.com/favicon.ico">
+
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Steps to monitor the SQL Server Services </title>
+<meta name="description" content="I have a need to monitor the SQL Server Services in my environment.  Are there any programmatic options to do so?  Check out this tip to learn more.">
+<link rel="canonical" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/">
+
+
+
+<link href="./Steps to monitor the SQL Server Services_files/foundation2.css" rel="stylesheet">
+<link href="./Steps to monitor the SQL Server Services_files/app.css" rel="stylesheet">
+
+
+
+<script async="" src="./Steps to monitor the SQL Server Services_files/async-ads.js.download"></script><script src="https://securepubads.g.doubleclick.net/gampad/ads?gdfp_req=1&amp;pvsid=1894111469990268&amp;correlator=879103966282464&amp;output=json_html&amp;callback=googletag.impl.pubads.callbackProxy1&amp;impl=fifs&amp;adsid=AAHFkB6rg66HeDOFTzbll2BHxITlIl6ydAKSg0slmDwuGS3smZOVER1mRzXmctBk3MK6-44SAJkgVxQhvRLIDHuxEU0M1uxcRfht0g&amp;jar=2019-01-28-10&amp;json_a=1&amp;eid=21062415%2C21062576%2C21063063&amp;vrg=295&amp;guci=2.2.0.0.2.2.0.0&amp;plat=1%3A32776%2C2%3A32776&amp;sc=1&amp;sfv=1-0-31&amp;iu_parts=53998264%2C160x600-Primary%2C160x600-Secondary%2C300x250-Primary%2C300x250-Secondary%2C728x90-Primary%2C170x90-pos1%2C170x90-pos2%2C170x90-pos3%2C170x90-pos4&amp;enc_prev_ius=%2F0%2F1%2C%2F0%2F2%2C%2F0%2F3%2C%2F0%2F4%2C%2F0%2F5%2C%2F0%2F6%2C%2F0%2F7%2C%2F0%2F8%2C%2F0%2F9&amp;prev_iu_szs=160x600%7C300x600%2C160x600%7C300x600%2C300x250%2C300x250%2C728x90%2C170x90%2C170x90%2C170x90%2C170x90&amp;cookie=ID%3Db33341e8030d8b94%3AT%3D1507145852%3AS%3DALNI_MZAzg2es3rdyceB-KgMV0fCwgjVwA&amp;bc=15&amp;abxe=1&amp;lmt=1548673162&amp;dt=1548673162337&amp;dlt=1548673159482&amp;idt=2647&amp;frm=20&amp;biw=1583&amp;bih=789&amp;oid=3&amp;adxs=1129%2C1129%2C1129%2C1129%2C267%2C1190%2C1190%2C1190%2C1190&amp;adys=231%2C2321%2C1031%2C3121%2C310%2C1505%2C1691%2C1877%2C2063&amp;adks=2200223050%2C1205785885%2C2511885345%2C200795820%2C4022969514%2C4219237691%2C3420296825%2C134036383%2C4265521685&amp;ucis=1%7C2%7C3%7C4%7C5%7C6%7C7%7C8%7C9&amp;ifi=1&amp;u_tz=330&amp;u_his=1&amp;u_h=900&amp;u_w=1600&amp;u_ah=860&amp;u_aw=1600&amp;u_cd=24&amp;u_nplug=3&amp;u_nmime=4&amp;u_sd=1&amp;flash=0&amp;url=https%3A%2F%2Fwww.mssqltips.com%2Fsqlservertip%2F2867%2Fsteps-to-monitor-the-sql-server-services%2F&amp;ref=https%3A%2F%2Fwww.mssqltips.com%2Fsql-server-tip-category%2F29%2Fsql-server-configurations%2F&amp;dssz=42&amp;icsg=44565455&amp;std=0&amp;vis=1&amp;dmc=8&amp;scr_x=0&amp;scr_y=0&amp;psz=292x800%7C292x800%7C292x450%7C300x250%7C936x174%7C292x696%7C292x696%7C292x696%7C292x696&amp;msz=300x-1%7C300x-1%7C300x-1%7C300x-1%7C936x-1%7C170x-1%7C170x-1%7C170x-1%7C170x-1&amp;blev=1&amp;bisch=1&amp;ga_vid=1074019228.1521782864&amp;ga_sid=1548671414&amp;ga_hid=2117250383&amp;ga_fc=true&amp;fws=0%2C0%2C0%2C0%2C0%2C0%2C0%2C0%2C0"></script><script src="./Steps to monitor the SQL Server Services_files/pubads_impl_rendering_295.js.download"></script><script src="./Steps to monitor the SQL Server Services_files/cb=gapi.loaded_1" async=""></script><script src="./Steps to monitor the SQL Server Services_files/cb=gapi(1).loaded_0" async=""></script><script type="text/javascript" async="" src="./Steps to monitor the SQL Server Services_files/recaptcha__en.js.download"></script><script type="text/javascript" async="" src="./Steps to monitor the SQL Server Services_files/ga.js.download"></script><script type="text/javascript" async="" src="./Steps to monitor the SQL Server Services_files/atrk.js.download"></script><script type="text/javascript" async="" src="./Steps to monitor the SQL Server Services_files/plusone.js.download" gapi_processed="true"></script><script id="facebook-jssdk" src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&amp;version=v2.5"></script><script type="text/javascript" async="" src="./Steps to monitor the SQL Server Services_files/f.txt"></script><script type="application/ld+json">
+{
+  "@context": "http://schema.org",
+  "@type": "NewsArticle",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/"
+  },
+  "headline": "Steps to monitor the SQL Server Services ",
+  "image": [
+    "https://www.mssqltips.com/images_newsletter/2867_NewsletterImage.png"
+   ],  
+  "datePublished": "2013-01-28T00:00:00+05:00",
+  "dateModified": "2013-01-28T00:00:00+05:00",
+  "author": {
+    "@type": "Person",
+    "name": "Jugal Shah"
+  },
+   "publisher": {
+    "@type": "Organization",
+    "name": "MSSQLTips",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://www.mssqltips.com/images/mslogo_113x60.png"
+    }
+  },
+  "description": "I have a need to monitor the SQL Server Services in my environment.  Are there any programmatic options to do so?  Check out this tip to learn more."
+}
+</script>
+
+<meta property="og:url" content="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Steps to monitor the SQL Server Services ">
+<meta property="og:description" content="I have a need to monitor the SQL Server Services in my environment.  Are there any programmatic options to do so?  Check out this tip to learn more.">
+<meta property="og:image" content="https://www.mssqltips.com/images_newsletter/2867_NewsletterImage.png">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:site" content="@mssqltips">
+<meta name="twitter:creator" content="@mssqltips">
+<meta name="twitter:title" content="Steps to monitor the SQL Server Services ">
+<meta name="twitter:description" content="I have a need to monitor the SQL Server Services in my environment.  Are there any programmatic options to do so?  Check out this tip to learn more.">
+<meta name="twitter:image" content="https://www.mssqltips.com/images_newsletter/2867_NewsletterImage.png">
+
+
+
+
+
+<script async="async" src="./Steps to monitor the SQL Server Services_files/gpt.js.download"></script>
+<script>
+  var googletag = googletag || {};
+  googletag.cmd = googletag.cmd || [];
+</script>
+
+
+<script type="text/javascript">
+var gptAdSlots = [];
+googletag.cmd.push(function() {
+
+var mapping = googletag.sizeMapping().
+
+addSize([100, 100], []).
+addSize([320, 400], []).
+addSize([320, 700], []).
+addSize([750, 200], [728, 90]).
+addSize([1050, 200], [728, 90]).build();
+
+ googletag.defineSlot('/53998264/160x600-Primary', [[160, 600], [300, 600]], 'div-gpt-ad-1388505177750-0').addService(googletag.pubads());  googletag.defineSlot('/53998264/160x600-Secondary', [[160, 600], [300, 600]], 'div-gpt-ad-1388505177750-1').addService(googletag.pubads());  googletag.defineSlot('/53998264/300x250-Primary', [300, 250], 'div-gpt-ad-1388505177750-2').addService(googletag.pubads());  var slot2 = googletag.defineSlot('/53998264/300x250-Secondary', [300, 250], 'div-gpt-ad-1388505177750-3').addService(googletag.pubads());  
+	gptAdSlots[0] = googletag.defineSlot('/53998264/728x90-Primary', [728, 90], 'ad-slot-leader').
+	defineSizeMapping(mapping).
+	addService(googletag.pubads());
+
+	googletag.defineSlot('/53998264/170x90-pos1', [170, 90], 'div-gpt-ad-1481919244109-0').addService(googletag.pubads());
+	googletag.defineSlot('/53998264/170x90-pos2', [170, 90], 'div-gpt-ad-1481919244109-1').addService(googletag.pubads());
+	googletag.defineSlot('/53998264/170x90-pos3', [170, 90], 'div-gpt-ad-1481919244109-2').addService(googletag.pubads());
+	googletag.defineSlot('/53998264/170x90-pos4', [170, 90], 'div-gpt-ad-1481919244109-3').addService(googletag.pubads());
+
+
+
+googletag.pubads().enableSingleRequest();
+googletag.pubads().collapseEmptyDivs();
+googletag.enableServices();
+
+
+
+});
+</script>
+
+
+<style type="text/css">.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q{display:block!important;border:1px solid #cdcfd2!important;background-color:#fff!important;color:#373a3d!important;width:100vw!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-24GeGuJgk9LrMLp7qVvlyz{background:#6a7e89!important;color:#fff!important;padding:10px!important;font-size:18px!important;font-family:sans-serif!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-KVjdulkCFfUZps29EbgAC{background:#f3f6f8!important;border-bottom:1px solid #cdcfd2!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-KVjdulkCFfUZps29EbgAC>*{margin-right:10px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1OeZ2PQ98oAp6Vc5mMc6V5{list-style:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-vCwYmWF_l83ScZBrGnRoi,.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1OeZ2PQ98oAp6Vc5mMc6V5{margin:0!important;padding:0!important;width:100%!important;display:block!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-vCwYmWF_l83ScZBrGnRoi:not(:last-child){border-bottom:1px solid #cdcfd2!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1XQZkb-FlHWABUp4_uShaZ{color:inherit!important;cursor:pointer!important;width:100%!important;display:inline-block!important;margin:10px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1XTzMvb2XKitWz0mFLlyyp{margin:5px!important;display:block!important;width:auto!important;white-space:pre!important;overflow-x:scroll!important;background:inherit!important;color:inherit!important;font-family:monospace}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1XTzMvb2XKitWz0mFLlyyp:not(.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-39QUvFFn5B7GMcqMQkOXZ3){display:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-295DY3nO0DbJWMsOqmjCli{background:#f5f5f5!important;color:#5a5a5a!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1aQZwu6CUzAf2zUcI7tg0Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-295DY3nO0DbJWMsOqmjCli{display:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-38EPFyKXMtoP12rPlmrHxs{background:#e6f7ff!important;color:#006097!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3W4ZnQjhoGfT1gTNcqRXdi .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-38EPFyKXMtoP12rPlmrHxs{display:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-HGYnfzlmgOZ-l7eANhQe_{background:#fff3ea!important;color:#993a00!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-24e52A11B1UIErbKHtBmqc .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-HGYnfzlmgOZ-l7eANhQe_{display:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-jji74ZzulHScD0OAD_G7h{background:#fef2f1!important;color:#b10823!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3npS60y-EvfF7G_lioSx2Q.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-28jAOA7cDee-95LvwGsOP- .IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-jji74ZzulHScD0OAD_G7h{display:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu{background-color:#0073b1!important;border:0!important;border-radius:2px!important;box-sizing:border-box!important;color:#fff!important;cursor:pointer!important;display:inline-block!important;font-family:-apple-system,system-ui,BlinkMacSystemFont,Segoe UI,Roboto,Helvetica Neue,Fira Sans,Ubuntu,Oxygen,Oxygen Sans,Cantarell,Droid Sans,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Lucida Grande,Helvetica,Arial,sans-serif!important;font-weight:600!important;overflow:hidden!important;outline-width:2px!important;position:relative!important;text-align:center!important;text-decoration:none!important;vertical-align:middle!important;white-space:nowrap!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu:disabled{cursor:not-allowed!important;opacity:.7!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu:not(:disabled):not(.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1zhzkayakwEXovVYUbq5Gy):hover{background-color:#006097!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu:not(:disabled):not(.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1zhzkayakwEXovVYUbq5Gy):active{background-color:#004b7c!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1zhzkayakwEXovVYUbq5Gy{background-color:#fff!important;color:#0073b1!important;box-shadow:inset 0 0 0 1px rgba(0,0,0,.3)!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1zhzkayakwEXovVYUbq5Gy:not(:disabled):hover{color:#006097!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1zhzkayakwEXovVYUbq5Gy:not(:disabled):active{color:#004b7c!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu>xdoor-icon{display:inline-block!important;height:100%!important;vertical-align:top!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu>xdoor-icon>svg{pointer-events:none!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-7inSbaAsvG5bf7w6lJTEr{font-size:10px!important;height:16px!important;line-height:16px!important;padding:0 6px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-7inSbaAsvG5bf7w6lJTEr>xdoor-icon{margin-left:-6px!important;margin-right:3px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-7inSbaAsvG5bf7w6lJTEr>xdoor-icon>svg{height:16px!important;width:16px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-7inSbaAsvG5bf7w6lJTEr.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-2lrEjt4SOTxqrYsv1piG4c>xdoor-icon{margin-right:-6px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu,.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3uCBSbQNVNf2QjqHe1rfb6{font-size:11px!important;height:20px!important;line-height:20px!important;padding:0 7px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3uCBSbQNVNf2QjqHe1rfb6>xdoor-icon,.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu>xdoor-icon{margin-left:-7px!important;margin-right:3.5px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3uCBSbQNVNf2QjqHe1rfb6>xdoor-icon>svg,.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu>xdoor-icon>svg{height:20px!important;width:20px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-3uCBSbQNVNf2QjqHe1rfb6.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-2lrEjt4SOTxqrYsv1piG4c>xdoor-icon,.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-2lrEjt4SOTxqrYsv1piG4c>xdoor-icon{margin-right:-7px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-21Smv9YG-5V6M6KP-5v2WG{font-size:14px!important;height:24px!important;line-height:24px!important;padding:0 12px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-21Smv9YG-5V6M6KP-5v2WG>xdoor-icon{margin-left:-12px!important;margin-right:6px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-21Smv9YG-5V6M6KP-5v2WG>xdoor-icon>svg{height:24px!important;width:24px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-21Smv9YG-5V6M6KP-5v2WG.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-2lrEjt4SOTxqrYsv1piG4c>xdoor-icon{margin-right:-12px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1TGdQUTLZdNG4R87OfAB-q{font-size:16px!important;height:32px!important;line-height:32px!important;padding:0 16px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1TGdQUTLZdNG4R87OfAB-q>xdoor-icon{margin-left:-16px!important;margin-right:8px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1TGdQUTLZdNG4R87OfAB-q>xdoor-icon>svg{height:32px!important;width:32px!important}.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1TGdQUTLZdNG4R87OfAB-q.IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-2lrEjt4SOTxqrYsv1piG4c>xdoor-icon{margin-right:-16px!important}</style><link rel="preload" href="./Steps to monitor the SQL Server Services_files/f(1).txt" as="script"><script type="text/javascript" src="./Steps to monitor the SQL Server Services_files/f(1).txt"></script><link rel="preload" href="./Steps to monitor the SQL Server Services_files/f(2).txt" as="script"><script type="text/javascript" src="./Steps to monitor the SQL Server Services_files/f(2).txt"></script><script src="./Steps to monitor the SQL Server Services_files/pubads_impl_295.js.download" async=""></script><script src="./Steps to monitor the SQL Server Services_files/cse_element__en.js.download" type="text/javascript"></script><link type="text/css" rel="stylesheet" href="./Steps to monitor the SQL Server Services_files/default+en.css"><link type="text/css" rel="stylesheet" href="./Steps to monitor the SQL Server Services_files/default.css"><link rel="stylesheet" href="./Steps to monitor the SQL Server Services_files/skin.min.css"><link rel="prefetch" href="https://tpc.googlesyndication.com/safeframe/1-0-31/html/container.html"><style type="text/css">.gsc-control-cse{font-family:verdana, arial, sans-serif}.gsc-control-cse .gsc-table-result{font-family:verdana, arial, sans-serif}.gsc-control-cse{border-color:#FFFFFF;background-color:#FFFFFF}input.gsc-input,.gsc-input-box,.gsc-input-box-hover,.gsc-input-box-focus{border-color:#D9D9D9}.gsc-search-button-v2,.gsc-search-button-v2:hover,.gsc-search-button-v2:focus{border-color:#2F5BB7;background-color:#3D85C6;background-image:none;filter:none}.gsc-search-button-v2 svg{fill:#FFFFFF}.gsc-tabHeader.gsc-tabhInactive{border-color:#CCCCCC;background-color:#FFFFFF}.gsc-tabHeader.gsc-tabhActive{border-color:#CCCCCC;border-bottom-color:#FFFFFF;background-color:#FFFFFF}.gsc-tabsArea{border-color:#CCCCCC}.gsc-webResult.gsc-result,.gsc-results .gsc-imageResult{border-color:#FFFFFF;background-color:#FFFFFF}.gsc-webResult.gsc-result:hover,.gsc-imageResult:hover{border-color:#FFFFFF;background-color:#FFFFFF}.gs-webResult.gs-result a.gs-title:link,.gs-webResult.gs-result a.gs-title:link b,.gs-imageResult a.gs-title:link,.gs-imageResult a.gs-title:link b{color:#1155CC}.gs-webResult.gs-result a.gs-title:visited,.gs-webResult.gs-result a.gs-title:visited b,.gs-imageResult a.gs-title:visited,.gs-imageResult a.gs-title:visited b{color:#1155CC}.gs-webResult.gs-result a.gs-title:hover,.gs-webResult.gs-result a.gs-title:hover b,.gs-imageResult a.gs-title:hover,.gs-imageResult a.gs-title:hover b{color:#1155CC}.gs-webResult.gs-result a.gs-title:active,.gs-webResult.gs-result a.gs-title:active b,.gs-imageResult a.gs-title:active,.gs-imageResult a.gs-title:active b{color:#1155CC}.gsc-cursor-page{color:#1155CC}a.gsc-trailing-more-results:link{color:#1155CC}.gs-webResult .gs-snippet,.gs-imageResult .gs-snippet,.gs-fileFormatType{color:#333333}.gs-webResult div.gs-visibleUrl,.gs-imageResult div.gs-visibleUrl{color:#009933}.gs-webResult div.gs-visibleUrl-short{color:#009933}.gs-webResult div.gs-visibleUrl-short{display:none}.gs-webResult div.gs-visibleUrl-long{display:block}.gs-promotion div.gs-visibleUrl-short{display:none}.gs-promotion div.gs-visibleUrl-long{display:block}.gsc-cursor-box{border-color:#FFFFFF}.gsc-results .gsc-cursor-box .gsc-cursor-page{border-color:#CCCCCC;background-color:#FFFFFF;color:#1155CC;}.gsc-results .gsc-cursor-box .gsc-cursor-current-page{border-color:#CCCCCC;background-color:#FFFFFF;color:#1155CC;}.gsc-webResult.gsc-result.gsc-promotion{border-color:#F6F6F6;background-color:#F6F6F6}.gsc-completion-title{color:#1155CC}.gsc-completion-snippet{color:#333333}.gs-promotion a.gs-title:link,.gs-promotion a.gs-title:link *,.gs-promotion .gs-snippet a:link{color:#1155CC}.gs-promotion a.gs-title:visited,.gs-promotion a.gs-title:visited *,.gs-promotion .gs-snippet a:visited{color:#1155CC}.gs-promotion a.gs-title:hover,.gs-promotion a.gs-title:hover *,.gs-promotion .gs-snippet a:hover{color:#1155CC}.gs-promotion a.gs-title:active,.gs-promotion a.gs-title:active *,.gs-promotion .gs-snippet a:active{color:#1155CC}.gs-promotion .gs-snippet,.gs-promotion .gs-title .gs-promotion-title-right,.gs-promotion .gs-title .gs-promotion-title-right *{color:#333333}.gs-promotion .gs-visibleUrl,.gs-promotion .gs-visibleUrl-short{color:#009933}.gcsc-find-more-on-google{color:#1155CC}.gcsc-find-more-on-google-magnifier{fill:#1155CC}</style><style type="text/css">.gscb_a{display:inline-block;font:27px/13px arial,sans-serif}.gsst_a .gscb_a{color:#a1b9ed;cursor:pointer}.gsst_a:hover .gscb_a,.gsst_a:focus .gscb_a{color:#36c}.gsst_a{display:inline-block}.gsst_a{cursor:pointer;padding:0 4px}.gsst_a:hover{text-decoration:none!important}.gsst_b{font-size:16px;padding:0 2px;position:relative;user-select:none;-webkit-user-select:none;white-space:nowrap}.gsst_e{vertical-align:middle;opacity:0.55;}.gsst_a:hover .gsst_e,.gsst_a:focus .gsst_e{opacity:0.72;}.gsst_a:active .gsst_e{opacity:1;}.gsst_f{background:white;text-align:left}.gsst_g{background-color:white;border:1px solid #ccc;border-top-color:#d9d9d9;box-shadow:0 2px 4px rgba(0,0,0,0.2);-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.2);margin:-1px -3px;padding:0 6px}.gsst_h{background-color:white;height:1px;margin-bottom:-1px;position:relative;top:-1px}.gsib_a{width:100%;padding:4px 6px 0}.gsib_a,.gsib_b{vertical-align:top}.gssb_c{border:0;position:absolute;z-index:989}.gssb_e{border:1px solid #ccc;border-top-color:#d9d9d9;box-shadow:0 2px 4px rgba(0,0,0,0.2);-webkit-box-shadow:0 2px 4px rgba(0,0,0,0.2);cursor:default}.gssb_f{visibility:hidden;white-space:nowrap}.gssb_k{border:0;display:block;position:absolute;top:0;z-index:988}.gsdd_a{border:none!important}.gsq_a{padding:0}.gssb_a{padding:0 7px}.gssb_a,.gssb_a td{white-space:nowrap;overflow:hidden;line-height:22px}#gssb_b{font-size:11px;color:#36c;text-decoration:none}#gssb_b:hover{font-size:11px;color:#36c;text-decoration:underline}.gssb_g{text-align:center;padding:8px 0 7px;position:relative}.gssb_h{font-size:15px;height:28px;margin:0.2em;-webkit-appearance:button}.gssb_i{background:#eee}.gss_ifl{visibility:hidden;padding-left:5px}.gssb_i .gss_ifl{visibility:visible}a.gssb_j{font-size:13px;color:#36c;text-decoration:none;line-height:100%}a.gssb_j:hover{text-decoration:underline}.gssb_l{height:1px;background-color:#e5e5e5}.gssb_m{color:#000;background:#fff}.gssb_a{padding:0 9px}.gsib_a{padding-right:8px;padding-left:8px}.gsst_a{padding-top:5.5px}.gssb_e{border:0}.gssb_l{margin:5px 0}input.gsc-input::-webkit-input-placeholder{font-size:14px}input.gsc-input:-moz-placeholder{font-size:14px}input.gsc-input::-moz-placeholder{font-size:14px}input.gsc-input:-ms-input-placeholder{font-size:14px}input.gsc-input:focus::-webkit-input-placeholder{color:transparent}input.gsc-input:focus:-moz-placeholder{color:transparent}input.gsc-input:focus::-moz-placeholder{color:transparent}input.gsc-input:focus:-ms-input-placeholder{color:transparent}.gssb_c .gsc-completion-container{position:static}.gssb_c{z-index:5000}.gsc-completion-container table{background:transparent;font-size:inherit;font-family:inherit}.gssb_c > tbody > tr,.gssb_c > tbody > tr > td,.gssb_d,.gssb_d > tbody > tr,.gssb_d > tbody > tr > td,.gssb_e,.gssb_e > tbody > tr,.gssb_e > tbody > tr > td{padding:0;margin:0;border:0}.gssb_a table,.gssb_a table tr,.gssb_a table tr td{padding:0;margin:0;border:0}</style></head>
+
+
+<body onload="PR.prettyPrint()" style="background-color:white;" data-gr-c-s-loaded="true">
+
+<a name="top"></a>
+
+
+
+	<div class="row">
+		<div class="large-12 columns text-center hide-for-small">
+		<br>
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;990x30&#39;, &#39;Click&#39;, &#39;Top&#39;]);" target="_blank" href="https://www.mssqltips.com/ss.asp?id=3986&amp;link=https://www.mssqltips.com/get-free-sql-server-tips/?ref=ss20190128"><img src="./Steps to monitor the SQL Server Services_files/MSSQLTips_990x30_FreeTips_20171117.png" border="0" height="30" width="990" alt="Learn more about SQL Server tools"></a>
+		<br><br>
+		</div>
+	</div>
+
+
+<div class="row fullWidth">
+	<div class="large-2 columns text-center">
+		<a href="https://www.mssqltips.com/"><img alt="mssqltips logo" src="./Steps to monitor the SQL Server Services_files/mslogo_113x60.png"></a>
+	</div>
+	
+	<div class="large-8 hide-for-print columns">
+		<div style="padding:10px; background-color:#DADADA">
+		<div style="padding: 5px; background-color:#FFFFFF">
+			<script>
+			  (function() {
+			    var cx = '004111219998430415686:pjndvj5e2n4';
+			    var gcse = document.createElement('script');
+			    gcse.type = 'text/javascript';
+			    gcse.async = true;
+			    gcse.src = 'https://cse.google.com/cse.js?cx=' + cx;
+			    var s = document.getElementsByTagName('script')[0];
+			    s.parentNode.insertBefore(gcse, s);
+			  })();
+			</script>
+			<div id="___gcse_0"><div class="gsc-control-searchbox-only gsc-control-searchbox-only-en" dir="ltr"><form class="gsc-search-box gsc-search-box-tools" accept-charset="utf-8"><table cellspacing="0" cellpadding="0" class="gsc-search-box"><tbody><tr><td class="gsc-input"><div class="gsc-input-box" id="gsc-iw-id1"><table cellspacing="0" cellpadding="0" id="gs_id50" class="gstl_50 gsc-input" style="width: 100%; padding: 0px;"><tbody><tr><td id="gs_tti50" class="gsib_a"><input autocomplete="off" type="text" size="10" class="gsc-input" name="search" title="search" id="gsc-i-id1" placeholder="Custom Search" dir="ltr" spellcheck="false" style="width: 100%; padding: 0px; border: none; margin: 0px; height: auto; background: url(&quot;https://www.google.com/cse/static/images/1x/googlelogo_lightgrey_46x16dp.png&quot;) left center no-repeat rgb(255, 255, 255); text-indent: 48px; outline: none;"></td><td class="gsib_b"><div class="gsst_b" id="gs_st50" dir="ltr"><a class="gsst_a" href="javascript:void(0)" style="display: none;"><span class="gscb_a" id="gs_cb50">×</span></a></div></td></tr></tbody></table></div></td><td class="gsc-search-button"><button class="gsc-search-button gsc-search-button-v2"><svg width="13" height="13" viewBox="0 0 13 13"><title>search</title><path d="m4.8495 7.8226c0.82666 0 1.5262-0.29146 2.0985-0.87438 0.57232-0.58292 0.86378-1.2877 0.87438-2.1144 0.010599-0.82666-0.28086-1.5262-0.87438-2.0985-0.59352-0.57232-1.293-0.86378-2.0985-0.87438-0.8055-0.010599-1.5103 0.28086-2.1144 0.87438-0.60414 0.59352-0.8956 1.293-0.87438 2.0985 0.021197 0.8055 0.31266 1.5103 0.87438 2.1144 0.56172 0.60414 1.2665 0.8956 2.1144 0.87438zm4.4695 0.2115 3.681 3.6819-1.259 1.284-3.6817-3.7 0.0019784-0.69479-0.090043-0.098846c-0.87973 0.76087-1.92 1.1413-3.1207 1.1413-1.3553 0-2.5025-0.46363-3.4417-1.3909s-1.4088-2.0686-1.4088-3.4239c0-1.3553 0.4696-2.4966 1.4088-3.4239 0.9392-0.92727 2.0864-1.3969 3.4417-1.4088 1.3553-0.011889 2.4906 0.45771 3.406 1.4088 0.9154 0.95107 1.379 2.0924 1.3909 3.4239 0 1.2126-0.38043 2.2588-1.1413 3.1385l0.098834 0.090049z"></path></svg></button></td><td class="gsc-clear-button"><div class="gsc-clear-button" title="clear results">&nbsp;</div></td></tr></tbody></table></form></div></div>
+		</div>
+		</div>
+	</div>	
+	
+	<div class="large-2 columns hide-for-small hide-for-print text-center">
+	</div>
+</div>
+<div class="row">
+	<div class="large-12 columns text-center">
+		&nbsp;
+	</div>
+</div>
+<div class="row fullWidth" style="background-color:#3B6D93;">
+	<div class="large-12 columns text-center hide-for-medium hide-for-small hide-for-print">
+		<h3 style="text-align:center; color:white; padding:5px 0 0 0;">
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Tutorials_l&#39;]);" href="https://www.mssqltips.com/sql-server-tutorials/" style="text-decoration:none;color:white">Tutorials</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;DBA_l&#39;]);" href="https://www.mssqltips.com/sql-server-dba-resources/" style="text-decoration:none;color:white">DBA</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Dev_l&#39;]);" href="https://www.mssqltips.com/sql-server-developer-resources/" style="text-decoration:none;color:white">Dev</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;BI_l&#39;]);" href="https://www.mssqltips.com/sql-server-business-intelligence-resources/" style="text-decoration:none;color:white">BI</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Career_l&#39;]);" href="https://www.mssqltips.com/sql-server-professional-development-resources/" style="text-decoration:none;color:white">Career</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Categories_l&#39;]);" href="https://www.mssqltips.com/sql-server-categories/" style="text-decoration:none;color:white">Categories</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Webcasts_l&#39;]);" href="https://www.mssqltips.com/sql-server-webcasts/" style="text-decoration:none;color:white">Webcasts</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Whitepapers_l&#39;]);" href="https://www.mssqltips.com/sql-server-whitepapers/" style="text-decoration:none;color:white">Whitepapers</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;TodaysTip_l&#39;]);" href="https://www.mssqltips.com/todays-sql-server-tip/" style="text-decoration:none;color:white">Today's&nbsp;Tip</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Join_l&#39;]);" href="https://www.mssqltips.com/get-free-sql-server-tips/?ref=JoinHeaderMenu" style="text-decoration:none;color:white">Join</a>
+		</h3>
+	</div>
+</div>
+<div class="row fullWidth" style="background-color:#3B6D93;">
+	<div class="large-12 columns text-center hide-for-large hide-for-small hide-for-print">
+		<h3 style="text-align:center; color:white; padding:5px 0 0 0;">
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Tutorials_m&#39;]);" href="https://www.mssqltips.com/sql-server-tutorials/" style="text-decoration:none;color:white">Tutorials</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;DBA_m&#39;]);" href="https://www.mssqltips.com/sql-server-dba-resources/" style="text-decoration:none;color:white">DBA</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Dev_m&#39;]);" href="https://www.mssqltips.com/sql-server-developer-resources/" style="text-decoration:none;color:white">Dev</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;BI_m&#39;]);" href="https://www.mssqltips.com/sql-server-business-intelligence-resources/" style="text-decoration:none;color:white">BI</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;		
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Categories_m&#39;]);" href="https://www.mssqltips.com/sql-server-categories/" style="text-decoration:none;color:white">Categories</a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Webcasts_m&#39;]);" href="https://www.mssqltips.com/sql-server-webcasts/" style="text-decoration:none;color:white">Webcasts</a>
+		</h3>
+	</div>
+</div>
+<div class="row fullWidth" style="background-color:#3B6D93;">
+	<div class="large-12 columns text-center hide-for-medium hide-for-large hide-for-print">
+		<h3 style="text-align:center; color:white; padding:5px 0 0 0;">
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;DBA_s&#39;]);" href="https://www.mssqltips.com/sql-server-dba-resources/" style="text-decoration:none;color:white">DBA</a>&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Dev_s&#39;]);" href="https://www.mssqltips.com/sql-server-developer-resources/" style="text-decoration:none;color:white">Dev</a>&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;BI_s&#39;]);" href="https://www.mssqltips.com/sql-server-business-intelligence-resources/" style="text-decoration:none;color:white">BI</a>&nbsp;&nbsp;&nbsp;
+		<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Menu_20160204&#39;, &#39;Click&#39;, &#39;Categories_s&#39;]);" href="https://www.mssqltips.com/sql-server-categories/" style="text-decoration:none;color:white">Categories</a>
+		</h3>
+	</div>
+</div>
+<div class="row">
+	&nbsp;
+</div>
+
+
+
+
+<div class="row">
+
+	 <div class="large-9 columns" role="content">  <h1>Steps to monitor the SQL Server Services </h1> 
+			<div align="center" class="hide-for-print">
+				<br>
+				<div id="ad-slot-leader" style="height:150px;">
+				   <script>
+					 googletag.cmd.push(function() {googletag.display('ad-slot-leader'); });
+				   </script>
+				<div id="google_ads_iframe_/53998264/728x90-Primary_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/728x90-Primary_0" title="3rd party ad content" name="google_ads_iframe_/53998264/728x90-Primary_0" width="728" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource.html"></iframe></div></div>
+			</div>
+		
+
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "//connect.facebook.net/en_US/sdk.js#xfbml=1&version=v2.5";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+
+
+<article>
+		
+		<h6>By: <a href="https://www.mssqltips.com/sqlserverauthor/47/jugal-shah/" rel="author" title="author profile for Jugal Shah">Jugal Shah</a> &nbsp;&nbsp;|&nbsp;&nbsp; Last Updated: 2013-01-28 &nbsp;&nbsp;|&nbsp;&nbsp; <a href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#comments" title="read and post comments">Comments (21)</a> &nbsp;&nbsp;|&nbsp;&nbsp;<span class="hide-for-small"> Related Tips: <a href="https://www.mssqltips.com/sql-server-dba-resources/">More</a> &gt; </span> <a href="https://www.mssqltips.com/sql-server-tip-category/29/sql-server-configurations/">SQL Server Configurations</a></h6>
+		
+		<br>
+		
+
+		
+		<h5>Problem</h5>
+<p>I have a need to monitor the SQL Server Services in my environment.&nbsp; Are there any programmatic options to do so?&nbsp; Check out this tip to learn more.</p>
+<h5>Solution</h5>
+<p>To monitor the <b>SQL Server Services</b> I will use the <b>Get-WmiObject</b> cmdlet and <b>win32_service</b> class in <a href="https://www.mssqltips.com/sql-server-tip-category/81/powershell/">PowerShell</a>.&nbsp; The <b>Get-WmiObject</b> cmdlet gets instances of Windows Management Instrumentation (WMI) classes or information about the available classes.</p>
+<h3><b>Syntax</b> </h3>
+<p>Here is the sample syntax:</p>
+<div class="codediv"><pre>Get-WmiObject [[-Class] <string>] [-Authority <string>] [-List] [-Recurse]
+ [-Amended] [-AsJob] [-Authentication {Default | None | Connect | Call | Packet 
+| PacketIntegrity | PacketPrivacy | Unchanged}] [-ComputerName <string[ ]="">] 
+[-Credential <pscredential>] [-EnableAllPrivileges] 
+[-Impersonation {De fault | Anonymous | Identify | Impersonate | Delegate}] [-Locale <string>] 
+[-Namespace <string>] [-ThrottleLimit <int>] [<commonparameters>]
+</commonparameters></int></string></string></pscredential></string[></string></string></pre></div>
+<p>You can get the more information on the <b>Get-WmiObject</b> cmdlet, by executing the commands below on the PowerShell command prompt. </p>
+<div class="codediv"><pre>## for detailed information
+get-help Get-WmiObject -detailed
+## For technical information, type:
+get-help Get-WmiObject -full
+</pre></div>
+<p>Before we proceed with the <b>PowerShell script</b> to <b>monitor</b> the <b>SQL Services</b>, I will show you few examples of PowerShell script with some different options. You can practice these sample commands on the PowerShell command prompt.</p>
+<p>The command below will list of all the Services on the local computer and its properties.</p>
+<div class="codediv"><pre>get-wmiobject -Class win32_service | select-object *
+</pre></div>
+<p>The command below will print a list of all the <b>methods and properties</b> associated with the <b>win32_service</b> class.</p>
+<div class="codediv"><pre>Get-WmiObject -Class win32_service | get-member
+</pre></div>
+<p>The command below will print a list of specific properties of the services which are used with the <b>Select-Object</b> clause.</p>
+<div class="codediv"><pre>get-wmiobject -Class win32_service | select-object  Name,state,systemname,startmode,startname
+</pre></div>
+<p>The command below will only list out the MSSQLServer (Default Instance) or MSSQL$InstanceName (Named Instance) SQL Services.</p>
+<div class="codediv"><pre>get-wmiobject -Class win32_service | where {$_.name -like 'MSSQLServer' -OR $_.name -like 'MSSQL$*' } 
+| select-object  Name,state,systemname,startmode,startname
+</pre></div>
+<p>Now I hope you have a pretty clear understanding on how to use the <b>Get-WmiObject</b> cmdlet to get the list of SQL Services and their status. Based on this information, we will follow the steps below to setup SQL Service monitoring using T-SQL.</p>
+<p><b>Step 1</b> - In this step we will create two tables <b>tbl_SQLCMDB</b> (Windows Server and SQL Server instance to monitor) and <b>tbl_serviceStatus</b> (SQL Service monitoring results). </p>
+<div class="codediv"><pre>-- Table to store the windows server name &amp; SQL instance name
+CREATE TABLE [dbo].[tbl_SQLCMDB](
+ [SQLinstanceName] [varchar](100) NULL,
+ [windowsServerName] [varchar](100) NULL
+) ON [PRIMARY]
+-- Inserting Data into SQLCMDB
+insert into tbl_SQLCMDB values ('SQLDBPool','SQLDBPool') -- Default Instance
+insert into tbl_SQLCMDB values ('JugalPC','JugalPC\MSSQL')
+-- SQL Service Monitoring Output Table
+CREATE TABLE [dbo].[tbl_serviceStatus](
+ [SQLServiceName] [varchar](500) NULL,
+ [servicestatus] [varchar](100) NULL,
+ [windowservername] [varchar](500) NULL,
+ [startmode] [varchar](100) NULL,
+ [UpdateDate] [datetime] NULL DEFAULT GETDATE(),
+ [startname] [varchar](1000) NULL,
+ [InstanceName] [varchar](1000) NULL
+) ON [PRIMARY]
+</pre></div>
+<p><b>Step 2</b> - To monitor the SQL Services we are going to use the tbl_SQLCMDB table and the sample PowerShell script below<b>. </b></p>
+<p>This PowerShell command will retrieve all the services with a name containing <b>"SQL"</b>.</p>
+<div class="codediv"><pre>get-wmiobject -Class win32_service | where {$_.name -like '*SQL*'} 
+| select-object  Name,state,systemname,startmode,startname
+</pre></div>
+<p>As an example, we are going to run the above <a href="https://www.mssqltips.com/sql-server-tip-category/81/powershell/">PowerShell</a> script either by using <a href="https://www.mssqltips.com/sql-server-tip-category/52/sql-server-management-studio/">SQL Server Management Studio</a> or a <a href="https://www.mssqltips.com/sqlservertutorial/160/sql-server-stored-procedure/">stored procedure</a>, make sure xp_cmdshell is enabled on the SQL Instance. To enable <a href="https://www.mssqltips.com/sqlservertip/1020/enabling-xpcmdshell-in-sql-server-2005/">xp_cmdshell</a> you must have at least the <b>ALTER SETTINGS</b> server-level permission. The <b>ALTER SETTINGS</b> permission is implicitly held by the <b>sysadmin</b> and <b>serveradmin</b> fixed server roles.</p>
+<p>You can execute the below script to check and enable xp_cmdshell.</p>
+<div class="codediv"><pre>declare @chkCMDShell as sql_variant
+select @chkCMDShell = value from sys.configurations where name = 'xp_cmdshell'
+if @chkCMDShell = 0
+begin
+ EXEC sp_configure 'xp_cmdshell', 1
+ RECONFIGURE;
+end
+else
+begin
+ Print 'xp_cmdshell is already enabled'
+end
+</pre></div>
+<p><b>Step 3</b> - Execute the script below to monitor the SQL Services and their status. You can also create a <a href="https://www.mssqltips.com/sqlservertutorial/160/sql-server-stored-procedure/">stored procedure</a> with the T-SQL code below and execute it for monitoring purposes.</p>
+<div class="scrollbox"><pre>set nocount on
+-- Variable to store windows server name
+DECLARE @server_name varchar(100)
+DECLARE @SQLInstance_name varchar(100)
+-- table to store PowerShell script output
+CREATE TABLE #output
+(line varchar(max) null)
+-- Declaring cursor to fetch windows server name
+DECLARE server_cursor CURSOR FOR 
+select distinct LTRIM(rtrim(windowsservername)) as windowsServerName,SQLInstanceName from tbl_sqlcmdb
+OPEN server_cursor
+FETCH NEXT FROM server_cursor 
+INTO @server_name, @SqlInstance_Name
+WHILE @@FETCH_STATUS = 0
+BEGIN
+declare @svrName varchar(255)
+declare @sql varchar(400)
+set @svrName = @server_name
+-- Preparing PowerShell Dynamic Statement
+set @sql = 'powershell.exe -c "Get-WmiObject  -ComputerName ' + QUOTENAME(@svrName,'''') + ' -Class win32_service |  where {$_.name -like ' + QUOTENAME('*SQL*','''') + '} | select-object  Name,state,systemname,startmode,startname  | for each{$_.name+''|''+$_.state+''%''+$_.systemname+''*''+$_.startmode+''@''+$_.startname+''!''}"'
+-- Inserting PowerShell Output to temporary table
+insert #output
+EXEC xp_cmdshell @sql
+-- Deleting the rows which contains error or has not sufficient data
+delete from #output  where len(line) &lt; 30
+update #output set line = line + '!' where line not like '%!%'
+IF (SELECT COUNT(*) FROM #output where line like '%Get-Wmi%') = 0
+begin
+insert into tbl_serviceStatus(SQLServiceName,servicestatus,windowservername,startmode,startname,InstanceName)
+select  rtrim(ltrim(SUBSTRING(line,1,CHARINDEX('|',line) -1))) as SQLServiceName 
+,(rtrim(ltrim(SUBSTRING(line,CHARINDEX('|',line)+1, (CHARINDEX('%',line) -1)-CHARINDEX('|',line)) ))) as ServiceStatus
+--,(rtrim(ltrim(SUBSTRING(line,CHARINDEX('%',line)+1, (CHARINDEX('*',line) -1)-CHARINDEX('%',line)) ))) as WindowsServerName 
+,@server_name
+,(rtrim(ltrim(SUBSTRING(line,CHARINDEX('*',line)+1, (CHARINDEX('@',line) -1)-CHARINDEX('*',line)) ))) as startmode
+,(rtrim(ltrim(SUBSTRING(line,CHARINDEX('@',line)+1, (CHARINDEX('!',line) -1)-CHARINDEX('@',line)) ))) as startname
+,@SQLInstance_name
+from #output
+where line is not null and LEN(line) &gt; 30
+end
+-- Clearing output table
+truncate table #output
+-- Next windows record
+FETCH NEXT FROM server_cursor 
+INTO @server_name,@SQLInstance_name
+END 
+CLOSE server_cursor;
+DEALLOCATE server_cursor;
+-- dropping the temporary table
+drop table #output
+</pre></div>
+<h3>Sample Output </h3>
+<p>Here is some sample output as a point of reference:</p>
+<div class="codediv"><pre>SELECT * FROM dbo.tbl_serviceStatus</pre></div><br>
+<div class="imageborder"><img alt="SQL Services Sample Output" src="./Steps to monitor the SQL Server Services_files/2867_SQLServicesOutput.jpg" width="507" height="173"></div>
+<h3>Automation</h3>
+<p>To automate this process, can create a <a href="https://www.mssqltips.com/sql-server-tip-category/27/sql-server-agent/">SQL Server Agent Job</a> from the above T-SQL code to monitor the SQL Services in your environment and you can generate different kind of reports by querying the <b>tbl_serviceStatus</b> table. </p>
+<p>For example:</p>
+<ul>
+<li>List of SQL Services Stopped 
+</li><li>List of SQL Services which has start mode Manual 
+</li><li>List of SQL Service running under local system account 
+</li><li>List of SQL Service AD accounts in the environment</li></ul>
+<h5>Next Steps</h5>
+<ul>
+<li>Configure <a href="https://www.mssqltips.com/sql-server-tip-category/44/database-mail/">Database Mail</a> on your SQL Server instances and generate alert emails to help improve the automation and notification. 
+</li><li>Add additional field to tbl_SQLCMDB table for example ServerType (PRD, QA, UAT or DEV), Version, IsCluster, etc. to help prioritize issues. 
+</li><li>Be proactive and begin monitoring the status of your SQL Server services in your environment.</li></ul>
+
+		<br><br>
+		
+		Last Updated: 2013-01-28
+
+		<br><br><br>
+
+		<div class="row">
+			<div class="large-6 columns">
+				<div align="center" class="hide-for-print">
+
+	<div align="center" class="hide-for-print"><a href="https://www.mssqltips.com/sql-server-webcast-signup/?id=696&amp;src=tipbot" onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;Webcast&#39;, &#39;Click&#39;, &#39;TipBottom&#39;]);" target="_blank"><img border="0" src="./Steps to monitor the SQL Server Services_files/mssqltips_attend_webcast.png" alt="next webcast button" width="300" height="150"></a></div>
+	<br>
+	
+</div>
+				<br>
+			</div>
+			<div class="large-6 columns">
+				<div align="center" class="hide-for-print"><a href="https://www.mssqltips.com/sql-server-tip-category/29/sql-server-configurations/" onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;NextTip&#39;, &#39;Click&#39;, &#39;YellowArrow&#39;]);"><img border="0" src="./Steps to monitor the SQL Server Services_files/nav_nexttip_clickhere_rev1.png" alt="next tip button" width="300" height="150"></a></div>
+				<br>
+			</div>
+		</div>
+		<br><br>
+
+		<h5>About the author</h5>
+		<div class="row">
+			<div class="large-6 columns">
+			<a href="https://www.mssqltips.com/sqlserverauthor/47/jugal-shah/"><img style="float: left; padding: 0px 3px 0px 0px;" alt="MSSQLTips author Jugal Shah" height="90" src="./Steps to monitor the SQL Server Services_files/JugalShah.jpg" width="60"></a>
+
+			Jugal Shah has 8+ years of extensive SQL Server experience and has  worked on SQL Server 2000, 2005, 2008 and 2008 R2.
+			<br><br><b><a href="https://www.mssqltips.com/sqlserverauthor/47/jugal-shah/">View all my tips</a></b>
+			</div>
+
+			<div class="large-6 columns">
+			
+	<b>Related Resources</b><br>
+	<ul>
+<li><a href="https://www.mssqltips.com/sql-server-dba-resources/">More SQL Server DBA Tips...</a></li>
+
+	</ul>
+
+			</div>
+		</div>
+		<br><br>
+
+<a name="comments"></a>
+		<div class="row hide-for-small hide-for-print">
+			<div class="large-2 columns">
+				<script src="./Steps to monitor the SQL Server Services_files/in.js.download" type="text/javascript"></script><span class="IN-widget" data-lnkd-debug="&lt;script type=&quot;IN/Share+init&quot; data-counter=&quot;right&quot;&gt;&lt;/script&gt;" style="display: inline-block; line-height: 1; vertical-align: bottom; padding: 0px; margin: 0px; text-indent: 0px; text-align: center;"><span style="padding: 0px !important; margin: 0px !important; text-indent: 0px !important; display: inline-block !important; vertical-align: bottom !important; font-size: 1px !important;"><button class="IN-5c1caa55-0e85-4bb1-925b-96b537f99da5-1G9ISYhSF8XoOmdcl0yKDu"><xdoor-icon aria-hidden="true"><svg viewBox="0 0 24 24" width="24px" height="24px" x="0" y="0" preserveAspectRatio="xMinYMin meet">
+      <g style="fill: currentColor">
+        <rect x="-0.003" style="fill:none;" width="24" height="24"></rect>
+        <path style="" d="M20,2h-16c-1.1,0-2,0.9-2,2v16c0,1.1,0.9,2,2,2h16c1.1,0,2-0.9,2-2V4C22,2.9,21.1,2,20,2zM8,19h-3v-9h3V19zM6.5,8.8C5.5,8.8,4.7,8,4.7,7s0.8-1.8,1.8-1.8S8.3,6,8.3,7S7.5,8.8,6.5,8.8zM19,19h-3v-4c0-1.4-0.6-2-1.5-2c-1.1,0-1.5,0.8-1.5,2.2V19h-3v-9h2.9v1.1c0.5-0.7,1.4-1.3,2.6-1.3c2.3,0,3.5,1.1,3.5,3.7V19z"></path>
+      </g>
+    </svg></xdoor-icon>Share</button></span></span>
+			</div>
+			<div class="large-2 columns">
+				<div class="fb-like" data-href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/" data-layout="button_count" data-width="50" data-action="like" data-show-faces="false"></div>
+			</div>
+
+			<div class="large-2 columns">
+				<a href="https://twitter.com/share" class="twitter-share-button" data-show-count="false">Tweet</a><script async="" src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
+			</div>
+			<div class="large-2 columns">
+				<!-- Place this tag where you want the +1 button to render -->
+				<div id="___plusone_0" style="text-indent: 0px; margin: 0px; padding: 0px; background: transparent; border-style: none; float: none; line-height: normal; font-size: 1px; vertical-align: baseline; display: inline-block; width: 32px; height: 20px;"><iframe ng-non-bindable="" frameborder="0" hspace="0" marginheight="0" marginwidth="0" scrolling="no" style="position: static; top: 0px; width: 32px; margin: 0px; border-style: none; left: 0px; visibility: visible; height: 20px;" tabindex="0" vspace="0" width="100%" id="I0_1548673161479" name="I0_1548673161479" src="./Steps to monitor the SQL Server Services_files/fastbutton.html" data-gapiattached="true" title="G+"></iframe></div>
+				<!-- Place this render call where appropriate -->
+				<script type="text/javascript">
+				  (function() {
+				    var po = document.createElement('script'); po.type = 'text/javascript'; po.async = true;
+				    po.src = 'https://apis.google.com/js/plusone.js';
+				    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(po, s);
+				  })();
+				</script>
+			</div>
+			<div class="large-4 columns">
+				<a href="https://www.mssqltips.com/contribute/">Become a paid author</a>
+			</div>
+		<hr>
+		</div>
+		<br><br>
+
+</article>
+
+
+
+
+		<div class="row">
+
+			
+
+		</div>
+
+		
+		<div class="hide-for-print">
+			
+			<a name="commentnew"></a>
+			<a name="comments2"></a>
+
+
+
+<script src="./Steps to monitor the SQL Server Services_files/api.js.download" async="" defer=""></script>
+
+<script language="Javascript">
+/**
+ * DHTML email validation script. Courtesy of SmartWebby.com (http://www.smartwebby.com/dhtml/)
+ */
+
+function echeck(str) {
+
+		var at="@"
+		var dot="."
+		var lat=str.indexOf(at)
+		var lstr=str.length
+		var ldot=str.indexOf(dot)
+		if (str.indexOf(at)==-1){
+		   alert("Invalid E-mail")
+		   return false
+		}
+
+		if (str.indexOf(at)==-1 || str.indexOf(at)==0 || str.indexOf(at)==lstr){
+		   alert("Invalid E-mail")
+		   return false
+		}
+
+		if (str.indexOf(dot)==-1 || str.indexOf(dot)==0 || str.indexOf(dot)==lstr){
+		    alert("Invalid E-mail")
+		    return false
+		}
+
+		 if (str.indexOf(at,(lat+1))!=-1){
+		    alert("Invalid E-mail")
+		    return false
+		 }
+
+		 if (str.substring(lat-1,lat)==dot || str.substring(lat+1,lat+2)==dot){
+		    alert("Invalid E-mail")
+		    return false
+		 }
+
+		 if (str.indexOf(dot,(lat+2))==-1){
+		    alert("Invalid E-mail")
+		    return false
+		 }
+		
+		 if (str.indexOf(" ")!=-1){
+		    alert("Invalid E-mail")
+		    return false
+		 }
+
+ 		 return true					
+	}
+
+function ValidateForm(){
+	var emailID=document.comment.email
+	var name=document.comment.name
+	var consent=document.comment.consent
+	var captchacode=document.comment.captchacode
+
+
+	if ((name.value==null)||(name.value=="")){
+		alert("Please Enter your Name")
+		name.focus()
+		return false
+	}	
+	if ((emailID.value==null)||(emailID.value=="")){
+		alert("Please Enter your Email")
+		emailID.focus()
+		return false
+	}
+	if (echeck(emailID.value)==false){
+		emailID.focus()
+		return false
+	}
+	
+	if (consent.checked == false) {
+	        alert("Please agree to terms by ticking check box.");
+	        return false;
+	}	
+	            
+	if(grecaptcha && grecaptcha.getResponse().length <= 0)
+	{
+		alert('Please check the recaptcha !');
+		return false;
+	}		
+	return true
+ }
+</script>
+<!-- TinyMCE -->
+<script type="text/javascript" src="./Steps to monitor the SQL Server Services_files/tinymce.min.js.download"></script>
+<script type="text/javascript">
+tinymce.init({
+    selector: "textarea",
+    menubar: false,
+    plugins: "preview",
+    toolbar: "undo redo | bold italic | bullist numlist outdent indent | link | preview"
+});
+</script>
+
+<!-- /TinyMCE -->
+<form name="comment" action="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#comments2" method="post" onsubmit="return ValidateForm()">
+<input type="hidden" name="tipid" value="2867">
+<input type="hidden" name="CanonicalComment" value="">
+	<div>
+
+		<!-- Gets replaced with TinyMCE, remember HTML in a textarea should be encoded -->
+		<div style="background-color:#E2E2E2; padding:10px;">
+			<h5><span style="color:#000080">Post a comment or let the author know this tip helped.</span></h5>
+			<p>All comments are reviewed, so stay on subject or we may delete your comment.  Note: your email address is not published. Required fields are marked with an asterisk (*).</p>
+
+			*Name&nbsp;<input type="text" name="name" size="30" value="">&nbsp;&nbsp;
+			*Email&nbsp;<input type="text" name="email" size="30" value="">&nbsp;&nbsp;
+			Email me updates&nbsp;<input type="checkbox" name="notifyflag" value="-1" checked=""><br><br>
+							
+			<div id="mceu_9" class="mce-tinymce mce-container mce-panel" hidefocus="1" tabindex="-1" role="application" style="visibility: hidden; border-width: 1px;"><div id="mceu_9-body" class="mce-container-body mce-stack-layout"><div id="mceu_10" class="mce-toolbar-grp mce-container mce-panel mce-stack-layout-item mce-first" hidefocus="1" tabindex="-1" role="group"><div id="mceu_10-body" class="mce-container-body mce-stack-layout"><div id="mceu_11" class="mce-container mce-toolbar mce-stack-layout-item mce-first mce-last" role="toolbar"><div id="mceu_11-body" class="mce-container-body mce-flow-layout"><div id="mceu_12" class="mce-container mce-flow-layout-item mce-first mce-btn-group" role="group"><div id="mceu_12-body"><div id="mceu_0" class="mce-widget mce-btn mce-first mce-disabled" tabindex="-1" aria-labelledby="mceu_0" role="button" aria-label="Undo" aria-disabled="true"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-undo"></i></button></div><div id="mceu_1" class="mce-widget mce-btn mce-last mce-disabled" tabindex="-1" aria-labelledby="mceu_1" role="button" aria-label="Redo" aria-disabled="true"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-redo"></i></button></div></div></div><div id="mceu_13" class="mce-container mce-flow-layout-item mce-btn-group" role="group"><div id="mceu_13-body"><div id="mceu_2" class="mce-widget mce-btn mce-first" tabindex="-1" aria-labelledby="mceu_2" role="button" aria-label="Bold"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-bold"></i></button></div><div id="mceu_3" class="mce-widget mce-btn mce-last" tabindex="-1" aria-labelledby="mceu_3" role="button" aria-label="Italic"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-italic"></i></button></div></div></div><div id="mceu_14" class="mce-container mce-flow-layout-item mce-btn-group" role="group"><div id="mceu_14-body"><div id="mceu_4" class="mce-widget mce-btn mce-first" tabindex="-1" aria-labelledby="mceu_4" role="button" aria-label="Bullet list"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-bullist"></i></button></div><div id="mceu_5" class="mce-widget mce-btn" tabindex="-1" aria-labelledby="mceu_5" role="button" aria-label="Numbered list"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-numlist"></i></button></div><div id="mceu_6" class="mce-widget mce-btn" tabindex="-1" aria-labelledby="mceu_6" role="button" aria-label="Decrease indent"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-outdent"></i></button></div><div id="mceu_7" class="mce-widget mce-btn mce-last" tabindex="-1" aria-labelledby="mceu_7" role="button" aria-label="Increase indent"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-indent"></i></button></div></div></div><div id="mceu_15" class="mce-container mce-flow-layout-item mce-btn-group" role="group"><div id="mceu_15-body"></div></div><div id="mceu_16" class="mce-container mce-flow-layout-item mce-last mce-btn-group" role="group"><div id="mceu_16-body"><div id="mceu_8" class="mce-widget mce-btn mce-first mce-last" tabindex="-1" aria-labelledby="mceu_8" role="button" aria-label="Preview"><button role="presentation" type="button" tabindex="-1"><i class="mce-ico mce-i-preview"></i></button></div></div></div></div></div></div></div><div id="mceu_17" class="mce-edit-area mce-container mce-panel mce-stack-layout-item" hidefocus="1" tabindex="-1" role="group" style="border-width: 1px 0px 0px;"><iframe id="elm1_ifr" frameborder="0" allowtransparency="true" title="Rich Text Area. Press ALT-F9 for menu. Press ALT-F10 for toolbar. Press ALT-0 for help" src="javascript:&quot;&quot;" style="width: 100%; height: 156px; display: block;" src="./Steps to monitor the SQL Server Services_files/saved_resource(1).html"></iframe></div><div id="mceu_18" class="mce-statusbar mce-container mce-panel mce-stack-layout-item mce-last" hidefocus="1" tabindex="-1" role="group" style="border-width: 1px 0px 0px;"><div id="mceu_18-body" class="mce-container-body mce-flow-layout"><div id="mceu_19" class="mce-path mce-flow-layout-item mce-first"><div role="button" class="mce-path-item mce-last" data-index="0" tabindex="-1" id="mceu_19-0" aria-level="0">p</div></div><div id="mceu_20" class="mce-flow-layout-item mce-last mce-resizehandle"><i class="mce-ico mce-i-resize"></i></div></div></div></div></div><textarea id="elm1" name="elm1" rows="10" style="width: 100%; display: none;" aria-hidden="true">&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;*** NOTE *** - If you want to include code from SQL Server Management Studio (SSMS) in your post, please copy the code from SSMS and paste the code into a text editor like NotePad before copying the code below to remove the SSMS formatting.</textarea>
+			<br><input type="checkbox" name="emailflag" value="1"> Signup for our newsletter 
+			<br><input type="checkbox" name="consent" value="1">&nbsp;I agree by submitting my data to receive communications, account updates and/or special offers about SQL Server from MSSQLTips and/or its Sponsors. I have read the <a href="https://www.mssqltips.com/privacy/" target="_blank">privacy statement</a> and understand I may unsubscribe at any time.
+			<br><br>
+			<table>
+			<tbody><tr>
+			<td>
+				<div class="g-recaptcha" data-sitekey="6LcADEQUAAAAAGZYi6gXYSN6Xgp99sRPN1F3JXMo"><div style="width: 304px; height: 78px;"><div><iframe src="./Steps to monitor the SQL Server Services_files/anchor.html" width="304" height="78" role="presentation" name="a-62o3et6enldo" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox"></iframe></div><textarea id="g-recaptcha-response" name="g-recaptcha-response" class="g-recaptcha-response" style="width: 250px; height: 40px; border: 1px solid rgb(193, 193, 193); margin: 10px 25px; padding: 0px; resize: none; display: none;"></textarea></div></div>			
+				<br><br>
+				&nbsp;&nbsp;&nbsp;&nbsp;<input type="submit" value="Save Comment" name="go" class="submit" style="background-color: #000080; color: #FFFFFF; font-size: 18px; font-weight: bold;">
+			</td>
+			</tr>
+			</tbody></table>
+		
+		</div>
+
+	</div>
+</form>
+		</div>
+		
+		<div class="hide-for-print">
+			
+
+
+
+
+
+<style type="text/css">
+.ForumPostBodyArea
+{
+	width: 100%;
+	vertical-align: top;
+	overflow: auto;
+}
+</style>
+
+<br><br><br>
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, November 21, 2016 - 6:43:45 AM - tanveer</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>&nbsp;Hi ,</p>
+<p>i get an error when i execute step 3 :</p>
+<p>&nbsp;</p>
+<p>Invalid length parameter passed to the LEFT or SUBSTRING function.</p>
+<p>The statement has been terminated.</p>
+<p>Msg 537, Level 16, State 3, Line 29</p>
+<p>Invalid length parameter passed to the LEFT or SUBSTRING function.</p>
+<p>&nbsp;</p>
+<p>please help</p>
+<p>&nbsp;</p>
+<p></p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Tuesday, March 01, 2016 - 5:37:02 AM - nagraj</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Hi&nbsp;Jugal,</p>
+<p>&nbsp;</p>
+<p>While executing below&nbsp;STEP3 from above procedure,i am getting below error.</p>
+<p>&nbsp;</p>
+<p>Please help me on this.</p>
+<p>&nbsp;</p>
+<p>Msg 537, Level 16, State 3, Line 29<br>Invalid length parameter passed to the LEFT or SUBSTRING function.<br>The statement has been terminated.<br>Msg 537, Level 16, State 3, Line 29<br>Invalid length parameter passed to the LEFT or SUBSTRING function.<br>The statement has been terminated.</p>
+<p>&nbsp;</p>
+<p>If i remove comment on&nbsp; below statement</p>
+<p>--,(rtrim(ltrim(SUBSTRING(line,CHARINDEX('%',line)+1, (CHARINDEX('*',line) -1)-CHARINDEX('%',line)) ))) as WindowsServerName</p>
+<p>like</p>
+<p>,(rtrim(ltrim(SUBSTRING(line,CHARINDEX('%',line)+1, (CHARINDEX('*',line) -1)-CHARINDEX('%',line)) ))) as WindowsServerName</p>
+<p>&nbsp;</p>
+<p>Again it is giving new error message.</p>
+<p>Msg 121, Level 15, State 1, Line 29<br>The select list for the INSERT statement contains more items than the insert list. The number of SELECT values must match the number of INSERT columns.</p>
+<p>Regards,</p>
+<p>Nagaraju Tadaka.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p></p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Friday, September 19, 2014 - 8:53:53 AM - Kapil Swamy</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Hi,</p>
+<p>&nbsp;</p>
+<p>While running the Step 3 from T-SQL and getting data from remote SQL server, I am encountering below error however when i directly run the below powershell command from command prompt I am getting output with no issues. Please assist</p>
+<p>&nbsp;</p>
+<p>Get-WmiObject &nbsp;-ComputerName 'GAL02059' -Class win32_service | &nbsp;where {$_.name -like '*SQL*'} | Select-Object Name, systemname, StartMode, State, StartName | foreach {$_.Name+ '|' + $_.systemname + '%'+ $_.StartMode + '*' + $_.State + '@' + $_.StartName + '!'}</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>Get-WmiObject : Access is denied. (Exception from HRESULT: 0x80070005 (E_ACCESS</p>
+<p>DENIED))</p>
+<p>At line:1 char:14</p>
+<p>+ Get-WmiObject &lt;&lt;&lt;&lt; &nbsp; -ComputerName 'SUL03750' -Class win32_service | &nbsp;where {</p>
+<p>$_.name -like '*SQL*'} | select-object &nbsp;Name,State,systemname,StartMode,StartNa</p>
+<p>me &nbsp;| foreach{$_.Name+'|'+$_.State+'%'+$_.systemname+'*'+$_.StartMode+'@'+$_.St</p>
+<p>artName+'!'}</p>
+<p>&nbsp; &nbsp; + CategoryInfo &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;: NotSpecified: (:) [Get-WmiObject], UnauthorizedA&nbsp;</p>
+<p>&nbsp; &nbsp;ccessException</p>
+<p>&nbsp; &nbsp; + FullyQualifiedErrorId : System.UnauthorizedAccessException,Microsoft.Pow&nbsp;</p>
+<p>&nbsp; &nbsp;erShell.Commands.GetWmiObjectCommand</p>
+<p>&nbsp;</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Saturday, November 30, 2013 - 3:33:56 AM - mathi</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>how to syn two sql db.. one is local and another in web...</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, April 08, 2013 - 5:37:27 PM - Mike Eastland</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>With the ability to run sql agent job steps as ActiveX (&lt; 2008) or Powershell (&gt;= 2008), I don't see a need for xp_cmdshell.</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Friday, March 22, 2013 - 4:39:57 PM - Simplicity</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>First, having SQL Server go out to xp_cmdshell is doing it backwards.&nbsp; Have your powershell/whatever run on its own (Windows Task Scheduler, perhaps) and use sqlcmd to put results into SQL with a limited permission account.</p>
+<p>&nbsp;</p>
+<p>Second, for a simpler method of gathering WMI, at a command prompt, simply use</p>
+<p>wmic /node:"YourServerOrIPAddress" service WHERE (Caption LIKE "%SQL%") get /all</p>
+<p>&nbsp;</p>
+<p>Reference:</p>
+<p>http://technet.microsoft.com/en-us/library/bb742610.aspx</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Thursday, February 07, 2013 - 10:19:06 AM - Chris Page</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Thanks for your article, it is just what I was looking for so that I can monitor service status rather than relying on our service provider, I've started putting together a set of blog posts on <a target="_blank" title="Chris Page Blog" href="http://the-sql-server-man.blogspot.co.uk/2013/01/adventures-with-powershell-first-steps.html">my blog</a> talking through what I have done locally to provide a monitoring service based on your powershell script so many thanks for getting me started.</p>
+<p>&nbsp;</p>
+<p>The one significant issue I hit early on was rights - some machines simply refused to let me access get-wmiobject on the remote server inspite of me having rights, it took some support from MSDN to understand the xp_cmdshell runs with the agent rights so was just a case of making sure appropriate rights were on other machines (for production purposes I would suggest a proxy account dedicated to the purpose).</p>
+<p>&nbsp;</p>
+<p>Keep up the good work.</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Saturday, February 02, 2013 - 7:47:02 PM - Jose Aguilar</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p></p>
+<p>Hi Jugal, Great article, I would like to share the way I figured it out some time ago,</p>
+<p>This is a set of files which run under cmd console, with the&nbsp;sqlcmd from&nbsp;SQL SERVER&nbsp;2005 SE SP3 in order to use the sqlcmd,<br>There are 5 steps to follow up until you get your own set of files according with following</p>
+<p>1.- Create the file ssservis.sql to review current sql server services status,<br>you can test it on ssms, bellow you can see commented lines, because those <br>services are not available in my home sqlserver 2005 express edition, you may test<br>each of your servers to figure out available services: I use to have all<br>of the listed services in a production environment with 65 servers, most of them<br>in sql server 2000 less than 20 with sql server 2005 and sql server 2008</p>
+<p>----------------------------------------------------------------------<br>--TSQL file ssservis.sql to run on each server<br>----------------------------------------------------------------------<br>set nocount on<br>CREATE TABLE #ServicesStatus<br>( <br>myid int identity(1,1),<br>serverName nvarchar(100) default @@serverName,<br>serviceName varchar(100) NULL,<br>Status varchar(50) NULL,<br>checkdatetime datetime default (getdate())<br>)</p>
+<p>DECLARE @IsVersion as smallint<br>DECLARE @VersSQL as varchar(320)</p>
+<p>SET NOCOUNT ON<br>SELECT @VersSQL = @@VERSION<br>IF CHARINDEX('SQL Server&nbsp; 2000', @VersSQL) &gt; 0 <br>BEGIN<br>&nbsp;SELECT @IsVersion = 2000<br>END<br>IF CHARINDEX('SQL Server 2005', @VersSQL) &gt; 0 <br>BEGIN<br>&nbsp;SELECT @IsVersion = 2005<br>END<br>IF CHARINDEX('SQL Server 2008', @VersSQL) &gt; 0 <br>BEGIN<br>&nbsp;SELECT @IsVersion = 2008<br>END<br>IF CHARINDEX('SQL Server 2010', @VersSQL) &gt; 0 <br>BEGIN<br>&nbsp;SELECT @IsVersion = 2010<br>END<br>--SELECT @IsVersion, @VersSQL</p>
+<p>-- Check status<br>IF @IsVersion &gt; 2000<br>&nbsp;BEGIN<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'MSSQLSERVER'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'MSSQLSERVER' where myid = @@identity<br>&nbsp;&nbsp;<br>--&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>--&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'SQLServerAGENT'<br>--&nbsp;&nbsp;update #ServicesStatus set serviceName = 'SQLServerAGENT' where myid = @@identity<br>&nbsp;<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'MSDTC'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'MSDTC' where myid = @@identity<br>&nbsp;<br>--&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>--&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'ReportServer' --<br>--&nbsp;&nbsp;update #ServicesStatus set serviceName = 'ReportServer' where myid = @@identity<br>&nbsp;<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'sqlbrowser'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'Browser' where myid = @@identity<br>&nbsp;<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'SQLWriter' --<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'SQLWriter' where myid = @@identity<br>&nbsp;<br>--&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>--&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'msftesql' --<br>--&nbsp;&nbsp;update #ServicesStatus set serviceName = 'msftesql' where myid = @@identity<br>&nbsp;<br>--&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>--&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'MsDtsServer' --<br>--&nbsp;&nbsp;update #ServicesStatus set serviceName = 'MsDtsServer' where myid = @@identity<br>&nbsp;<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'MSSQLSERVEROLAPSERVICE' ---<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'MSSQLSERVEROLAPSERVICE' where myid = @@identity<br>&nbsp;END<br>ELSE<br>&nbsp;BEGIN<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'MSSQLSERVER'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'MSSQLSERVER' where myid = @@identity<br>&nbsp;&nbsp;<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'SQLServerAGENT'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'SQLServerAGENT' where myid = @@identity</p>
+<p>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'MSDTC'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'MSDTC' where myid = @@identity<br>&nbsp;<br>&nbsp;&nbsp;INSERT #ServicesStatus (Status)<br>&nbsp;&nbsp;EXEC xp_servicecontrol N'querystate',N'Browser'<br>&nbsp;&nbsp;update #ServicesStatus set serviceName = 'Browser' where myid = @@identity<br>&nbsp;END</p>
+<p>SET NOCOUNT ON<br>SELECT <br>'SERVICE STATUS'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'APPLICATION',<br>'jose aguilar' &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'REFERENCE FOR COMMENTS',<br>SUBSTRING(CAST(@@serverName&nbsp; AS NVARCHAR(20)),1,20) &nbsp;&nbsp;'SERVER', <br>SUBSTRING(CAST(serviceName&nbsp; AS NVARCHAR(26)),1,26) &nbsp;&nbsp;'SERVICE',<br>SUBSTRING(CAST(checkdatetime&nbsp; AS NVARCHAR(20)),1,20) &nbsp;&nbsp;'TODAY',<br>SUBSTRING(CAST(Status AS NVARCHAR(20)),1,20) &nbsp;&nbsp;&nbsp;'STATUS'<br>FROM #ServicesStatus<br>SET NOCOUNT OFF<br>DROP TABLE #ServicesStatus</p>
+<p>----------------------------------------------------------------------------------------<br>--end of file ssservis.sql<br>----------------------------------------------------------------------------------------</p>
+<p>2.- List servers to be tested on file ssservrs.txt as server-instance|user|psw ; in the producion environment<br>I used to list servers by their IP instead of names:IP|user|psw; in this case I am using names, but I feel it <br>is&nbsp; better with IPs.</p>
+<p>GALAXY\SQLTWOK|JoseAguilar|_pa$$w0rd_<br>GALAXY\SQLEXPRESS|JoseAguilar|_pa$$w0rd_</p>
+<p>3.- Define a sqlcmd batch file:ssservis.bat, to go on each server with a FOR - DO MSDOS command as bellow</p>
+<p>@ECHO OFF<br>FOR /F "eol=; tokens=1,2,3 delims=| " %%i&nbsp; in (.\ssservrs.txt) DO (<br>sqlcmd -S %%i -U %%j -P %%k -i %1 -w4096 -h-1 &lt; exit.txt<br>)</p>
+<p>4.- Define an exit file:exit.txt for each iteration, ONLY ONE SINGLE LINE</p>
+<p>quit</p>
+<p>5.- Define a file:services.bat to start iterations applying a the query from step 1 as showed</p>
+<p>@echo off<br>echo "GET SQL SERVER SERVICES RESULT"<br>&nbsp; ssservis.bat ssservis.sql &gt; result.txt<br>echo END.</p>
+<p>6.- Review results on file:result.txt which should be like:</p>
+<p>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp;&nbsp; &nbsp;MSSQLSERVER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp; &nbsp;SQLServerAGENT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp; &nbsp;MSDTC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp;&nbsp; &nbsp;Browser&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; MSSQLSERVER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; MSDTC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; Browser&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; SQLWriter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Stopped.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; MSSQLSERVEROLAPSERVICE&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p><br>7.- Optionally you can append headers at the top of the results file, since I have suppressed them from de sqlcmd command as</p>
+<p>APPLICATION&nbsp;&nbsp;&nbsp; REFERENCE FC SERVER&nbsp;&nbsp; SERVICE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; TODAY&nbsp;&nbsp; STATUS<br>----------------------------------------------------------------------------------------------------------</p>
+<p>so file results.txt reads:<br>APPLICATION&nbsp;&nbsp;&nbsp; REFERENCE FC SERVER&nbsp;&nbsp;SERVICE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; TODAY&nbsp;&nbsp; STATUS<br>----------------------------------------------------------------------------------------------------------<br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp;&nbsp; &nbsp;MSSQLSERVER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp; &nbsp;SQLServerAGENT&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp; &nbsp;MSDTC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLTWOK&nbsp;&nbsp;&nbsp; &nbsp;Browser&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; MSSQLSERVER&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; MSDTC&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; Browser&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; SQLWriter&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Stopped.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <br>SERVICE STATUS jose aguilar GALAXY\SQLEXPRESS&nbsp;&nbsp; MSSQLSERVEROLAPSERVICE&nbsp;&nbsp;&nbsp;&nbsp; Jan 30 2013&nbsp; 2:59PM&nbsp; Running.&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</p>
+<p><br>8.- Finally&nbsp; and not less important: when ever a server is not available, there will be an error message in the results.txt file,<br>in between the other server results, you must figure out from your servers list wich is down, last column of results shows current <br>status for the service, this is very useful to test many servers in a couple of seconds, I use to test 65 production servers, and<br>eventually start up sqlagent when it was down for any reason, in order to make sure that overnight backup jobs runs properly.</p>
+<p>9.- ONE LAST THING, VERY IMPORTANT, THIS CAN BE USED TO APPLY A QUERY ON MANY SERVERS IN A MASSIVE WAY, SO BE CAREFULL PLEASE, I USED TO APPLY MASSIVE CHANGES FOR ALL SQL SERVERS FROM EACH BRANCH IN A COUPLE OF SECONDS, SO BE AWARE AND BE CAREFUL, I ALSO USED TO REQUEST FROM DEVELOPERS BEFORE SUBMITTING ANY DOCUMENTED RFC TO PLACE SQL SRIPT STATMENTs USING PRINT 'BEFORE CHANGE', 'PRINT WHILE CHANGING'AND 'PRINT AFTER CHANGE' TO HAVE RFC RESULTS DOCUMENTED.</p>
+<p>I HOPE YOU ENJOY IT, AND REMEMBER STEPS 1-5 ARE IN SEPARATED FILES AND EXECUTION STARTS WITH THE FILE services.bat IN THE CMD CONSOLE FROM THE FOLDER WHERE YOU PLACED ALL OF THE 5 FILES.</p>
+<p>BEST REGARDS</p>
+<p>Jose Aguilar</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p><br>&nbsp;</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Thursday, January 31, 2013 - 9:55:57 AM - PRADEEPT SINGH</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>All the services are in running mode except MSSQLServerADHelper100.</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Thursday, January 31, 2013 - 8:33:56 AM - Jugal</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p><span style="font-size: 13px;">Pradeep,&nbsp;</span><span style="font-size: small;">Copy below command &amp; execute it from the PS command prompt and let me know the result</span></p>
+<p><span style="font-size: 13px;">get-wmiobject -Class win32_service | where {$_.name -like '*SQL*'} &nbsp;</span><span style="font-size: 13px;">| select-object&nbsp; Name,state,systemname,startmode,startname</span></p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Thursday, January 31, 2013 - 12:54:09 AM - PRADEEPT SINGH</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<table style="table-layout: fixed; border: #cbdced 1px solid;" width="100%" border="0" cellspacing="0" cellpadding="4">
+<tbody>
+<tr>
+<td class="ForumPostBodyArea" colspan="2">
+<p><strong>while executing this code in POWER SHELL Getting error message&nbsp;----</strong></p>
+<p>"An empty pipe element is not allowed.<br>At line:1 char:2<br>+ | &lt;&lt;&lt;&nbsp;&nbsp;&nbsp; + CategoryInfo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ParserError: (:) [], ParentContainsErrorRecordEx<br>&nbsp;&nbsp; ception<br>&nbsp;&nbsp;&nbsp; + FullyQualifiedErrorId : EmptyPipeElement"</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p>Please suggest now what to do.</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Wednesday, January 30, 2013 - 8:31:33 AM - Jugal</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>It is already mentioned in the article that "<span style="font-size: 13px;">Before we proceed with the&nbsp;</span><strong style="font-size: 13px;">PowerShell script</strong><span style="font-size: 13px;">&nbsp;to&nbsp;</span><strong style="font-size: 13px;">monitor</strong><span style="font-size: 13px;">&nbsp;the&nbsp;</span><strong style="font-size: 13px;">SQL Services</strong><span style="font-size: 13px;">, I will show you few examples of PowerShell script with some different options."</span></p>
+<p><span style="font-size: 13px;"><br></span></p>
+<p><span style="font-size: 13px;">You can execute the queries/script from Step 1 onwards in SSMS.</span></p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Wednesday, January 30, 2013 - 4:05:06 AM - PRADEEPT SINGH</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Ok I am executing it on SSMS as you have mentioned above in Point number 2.</p>
+<p>"As an example, we are going to run the above PowerShell script either by using SQL Server Management Studio or a stored procedure, make sure xp_cmdshell is enabled on the SQL Instance. To enable xp_cmdshell you must have at least the ALTER SETTINGS server-level permission. The ALTER SETTINGS permission is implicitly held by the sysadmin and serveradmin fixed server roles"</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Wednesday, January 30, 2013 - 4:04:27 AM - PRADEEPT SINGH</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p><strong>Getting error message - in Power shell</strong></p>
+<p>"An empty pipe element is not allowed.<br>At line:1 char:2<br>+ | &lt;&lt;&lt;&lt;&nbsp; select-object&nbsp; Name,state,systemname,startmode,startname<br>&nbsp;&nbsp;&nbsp; + CategoryInfo&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; : ParserError: (:) [], ParentContainsErrorRecordEx<br>&nbsp;&nbsp; ception<br>&nbsp;&nbsp;&nbsp; + FullyQualifiedErrorId : EmptyPipeElement"</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Tuesday, January 29, 2013 - 10:50:03 AM - Jugal</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>You have to execute that script on Power Shell command prompt. Let me know what error you are getting while execution.</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Tuesday, January 29, 2013 - 6:30:38 AM - PRADEEPT SINGH</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p></p>
+<p>&nbsp;</p>
+<p>Hi Dear,</p>
+<p>&nbsp;</p>
+<p>I am not able to execute the above code i.e. step 2</p>
+<p>get-wmiobject -Class win32_service | where {$_.name -like '*SQL*'} <br>| select-object&nbsp; Name,state,systemname,startmode,startname</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, January 28, 2013 - 5:53:45 PM - alfredo</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>FOR EL SCRIPT, THE CORRECT IS ...</p>
+<pre style="font-size: 12px;">| for each{$ BAD</pre>
+<pre style="font-size: 12px;">&nbsp;</pre>
+<pre style="font-size: 12px;">| foreach{$ OK</pre>
+<pre style="font-size: 12px;">&nbsp;</pre>
+<pre style="font-size: 12px;">THANK YOU</pre>
+<pre style="font-size: 12px;">&nbsp;</pre>
+<pre style="font-size: 12px;">SANTIAGO, CHILE</pre>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, January 28, 2013 - 10:56:52 AM - Jugal</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Darshan, I would suggest you to create central monitoring server using the mentioned steps in the article. Monitor all the SQL Instances from one location.</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, January 28, 2013 - 10:38:55 AM - Ed - sqlscripter</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Great&nbsp;article! I saw a article from Microsoft where they compared the WSH\VB Script way to the powershell coded version. Much less code with PS. Here is how I did this way back the old way with WSH\VB\ASP scripting. I demo'd this this back then at a PASS July LIVE Web Presenter and a MSDN Code Camp in Malvern PA.</p>
+<p>'Edward J Pochinski III I made many mods to this code after it came from MS<br><a target="_blank" href="mailto:&#39;sqlscripters@hotmail.com">'sqlscripters@hotmail.com</a> 06/14/2004<br>'Change the file extension to .vbs to call<br>'MS used a DSN and I did not even test that method and used a DNS_LESS/OLEDB connection.<br>'Create ActiveX connection object<br>Set objConn = CreateObject("ADODB.Connection")<br>Set objRS = CreateObject("ADODB.Recordset")<br>'perfmon is the database with the ServicesTable you will need to edit Source= UID= and PWD=<br>objConn.Open&nbsp; "PROVIDER=SQLOLEDB;DATA SOURCE=ServerNameYouWantToQuery;UID=loginId;PWD=Password;DATABASE=perfMon "</p>
+<p>objRS.CursorLocation = 3<br>objRS.Open "SELECT * FROM Services_Table" , objConn, 3, 3<br>'This denotes local machine you can use a remote server inside the quotes<br>strComputer = "."<br>Set objWMIService = GetObject("winmgmts:" _<br>&nbsp;&nbsp;&nbsp; &amp; "{impersonationLevel=impersonate}!\\" &amp; strComputer &amp; "\root\cimv2")<br>Set colRetrievedEvents = objWMIService.ExecQuery _<br>&nbsp;&nbsp;&nbsp; ("Select * from Win32_Service where name = 'SQLSERVERAGENT'",,48)<br>For Each objEvent in colRetrievedEvents<br>&nbsp;&nbsp;&nbsp; objRS.AddNew<br>&nbsp;&nbsp;&nbsp; objRS("Name") = objEvent.Name<br>&nbsp;&nbsp;&nbsp; objRS("ExitCode") = objEvent.ExitCode<br>&nbsp;&nbsp;&nbsp; objRS("Started") = objEvent.Started<br>&nbsp;&nbsp;&nbsp; objRS("State") = objEvent.State<br>&nbsp;&nbsp;&nbsp; objRS("Status") = objEvent.Status<br>&nbsp;&nbsp;&nbsp; objRS("SystemName") = objEvent.SystemName<br>&nbsp;&nbsp;&nbsp; objRS.Update<br>Next</p>
+<p>objRS.Close<br>objConn.Close</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+<p>--Then to alarm on the data</p>
+<p>--This code calls the above WMI and checks the sql table</p>
+<p>&nbsp;</p>
+<p>Create Procedure sp_dba_ServicesMonitor AS</p>
+<p>--This procedure will check the services table and page a <br>--dba if the SQL or Agent services are down.<br>--Implementation is as follows: The SQL Agent Job step should call this procedure<br>&nbsp;</p>
+<p>--Load the services data from the remote server<br>DECLARE @retval int<br>DECLARE @cmdstr nvarchar(4000)<br>--Check the path to the vbs file<br>SET @cmdstr = ' D:\ScriptingAdsi\sqldba_scripts\Services_all_Dump_To1Table.vbs' --Set path to match your machine</p>
+<p>EXEC @retval = master..xp_cmdshell @cmdstr<br>IF (@retval = 0) --0 is a successful return code meaning successful<br>&nbsp;&nbsp;&nbsp;&nbsp; BEGIN<br>&nbsp; print '**************************************************************'<br>&nbsp; print '/***** The file was called successfully'<br>&nbsp; print '**************************************************************'<br>&nbsp; print ''<br>&nbsp;&nbsp;&nbsp;&nbsp; END<br>else <br>&nbsp;&nbsp;&nbsp;&nbsp; Begin <br>&nbsp;Print '**********************************************************************************************'<br>&nbsp;print ' A problem has occurred call someone who cares'<br>&nbsp;Print '**********************************************************************************************'<br>/*&nbsp;<br>&nbsp;Select @srvname&nbsp; = @@servername <br>&nbsp;select @fr = '*'<br>&nbsp;select @t = <a target="_blank" href="mailto:&#39;pin@skytel.com,pin@archwireless.net&#39;">'pin@skytel.com,pin@archwireless.net'</a><br>&nbsp;select @sub = @srvname&nbsp; +' Alert Error'<br>&nbsp;select @bod =&nbsp; 'A problem occurred executing the vbs file'<br>exec sp_dbaSendMail1 @fr , @t , @sub, @bod<br>*/<br>&nbsp;&nbsp;&nbsp;&nbsp; END</p>
+<p>--Part 2 : Check the status of the services and note the qualified path to the table<br>Declare @sysname varchar(55), @Service_name varchar(55)<br>select @sysname = SystemName, @service_name = name from perfmon..Services_Table where state = 'stopped'<br>IF @@rowcount &lt;&gt; 0 <br>Begin</p>
+<p>Print @sysname + ' ' + @service_name + ' service is not running call the Blue Eyes White Dragon....'<br>/*<br>Declare @msg varchar(255),@fr varchar(50),@t varchar (255),@sub varchar(100), @bod varchar(255)<br>--Build the string to send out as a page<br>select @msg = @sysname + ' ' + @service_name + ' service is not running'<br>select @fr = <a target="_blank" href="mailto:&#39;email@somwone.com&#39;">'email@somwone.com'</a><br>select @t = <a target="_blank" href="mailto:&#39;pin@skytel.com,pin@archwireless.net&#39;">'pin@skytel.com,pin@archwireless.net'</a>&nbsp; --edit who this is going to as <a target="_blank" href="mailto:1111111@skytel.com">1111111@skytel.com</a><br>select @sub = 'Alert' <br>select @bod = @msg<br>exec sp_dbaSendMail1 @fr , @t , @sub, @bod<br>*/<br>--Note the qualifiers<br>truncate table perfmon..Services_Table</p>
+<p>END<br>&nbsp;ELSE<br>Begin<br>--Note the qualifiers <br>truncate table perfmon..Services_Table<br>Print ' We are at the return Section of code'<br>Return<br>END <br>&nbsp;</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, January 28, 2013 - 9:29:41 AM - Rohit Garg</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Good article.</p>
+<p>&nbsp;</p>
+<p>Rohit</p>
+<p><a target="_blank" href="http://mssqlfun.com/">http://mssqlfun.com/</a></p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+
+
+					<table border="0" width="100%" cellspacing="0" cellpadding="4" style="border: 1px solid #CBDCED; table-layout: fixed;">
+					<tbody><tr>
+						<td width="80%" bgcolor="#E8F3FF">
+							<b>Monday, January 28, 2013 - 7:35:45 AM - Darshan</b>
+						</td>
+						<td style="text-align: right;" bgcolor="#E8F3FF">
+							<a title="read the tip" href="https://www.mssqltips.com/sqlservertip/2867/steps-to-monitor-the-sql-server-services/#top">Back To Top</a>
+
+						</td>
+					</tr>
+					<tr>
+						<td colspan="2" class="ForumPostBodyArea">
+							<p>Hi Jugal,</p>
+<p>One question here, If we schedule the windows shcedule task to know status of sql agent service every 15-30 minutes. Does it affect&nbsp;CPU &amp; memory usage? On my local server I feel it. Can't we set up WMI event or same thing like it ,which give instant alert,no need to execute it in some interval. I tried this but somehow I'm not getting alert. If I use same logic using powershell it works.</p>
+<p><a target="_blank" href="http://sqlish.com/alert-when-sql-server-agent-service-stops-or-fails/">http://sqlish.com/alert-when-sql-server-agent-service-stops-or-fails/</a></p>
+<p>&nbsp;</p>
+						</td>
+					</tr>
+					</tbody></table>
+<br>
+
+
+				
+		</div>
+		
+
+
+	</div>
+
+	
+	<aside class="large-3 hide-for-print columns">
+
+		<!-- 160x600-Primary -->
+<div align="center">
+	<div id="div-gpt-ad-1388505177750-0" style="width:300px; height:800px;">
+	<script type="text/javascript">
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1388505177750-0'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/160x600-Primary_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/160x600-Primary_0" title="3rd party ad content" name="google_ads_iframe_/53998264/160x600-Primary_0" width="300" height="800" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(2).html"></iframe></div></div>
+</div><!-- 300x250-Primary -->
+<div align="center">
+	<div id="div-gpt-ad-1388505177750-2" style="width:300px; height:450px;">
+	<script type="text/javascript">
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1388505177750-2'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/300x250-Primary_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/300x250-Primary_0" title="3rd party ad content" name="google_ads_iframe_/53998264/300x250-Primary_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(3).html"></iframe></div></div>
+</div><div align="center">
+	<br>
+	<!-- /53998264/170x90-pos1 -->
+	<div id="div-gpt-ad-1481919244109-0" style="height:90px; width:170px;">
+	<script>
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1481919244109-0'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/170x90-pos1_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/170x90-pos1_0" title="3rd party ad content" name="google_ads_iframe_/53998264/170x90-pos1_0" width="170" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(4).html"></iframe></div></div>
+	<br>
+	<br>
+	<br>
+
+	<br>
+	<!-- /53998264/170x90-pos2 -->
+	<div id="div-gpt-ad-1481919244109-1" style="height:90px; width:170px;">
+	<script>
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1481919244109-1'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/170x90-pos2_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/170x90-pos2_0" title="3rd party ad content" name="google_ads_iframe_/53998264/170x90-pos2_0" width="170" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(5).html"></iframe></div></div>
+	<br>
+	<br>
+	<br>
+
+	<br>
+	<!-- /53998264/170x90-pos3 -->
+	<div id="div-gpt-ad-1481919244109-2" style="height:90px; width:170px;">
+	<script>
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1481919244109-2'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/170x90-pos3_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/170x90-pos3_0" title="3rd party ad content" name="google_ads_iframe_/53998264/170x90-pos3_0" width="170" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(6).html"></iframe></div></div>
+	<br>
+	<br>
+	<br>
+
+	<br>
+	<!-- /53998264/170x90-pos4 -->
+	<div id="div-gpt-ad-1481919244109-3" style="height:90px; width:170px;">
+	<script>
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1481919244109-3'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/170x90-pos4_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/170x90-pos4_0" title="3rd party ad content" name="google_ads_iframe_/53998264/170x90-pos4_0" width="170" height="90" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(7).html"></iframe></div></div>
+	<br>
+</div>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br><!-- 160x600-Secondary -->
+<div align="center">
+	<div id="div-gpt-ad-1388505177750-1" style="width:300px; height:800px;">
+	<script type="text/javascript">
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1388505177750-1'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/160x600-Secondary_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/160x600-Secondary_0" title="3rd party ad content" name="google_ads_iframe_/53998264/160x600-Secondary_0" width="300" height="800" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(8).html"></iframe></div></div>
+</div>	
+
+		<div id="sticky-anchor" style="height: 250px;"></div>
+
+		<!-- 300x250-Secondary -->
+<div id="sticky" align="center" class="stick">
+	<div id="div-gpt-ad-1388505177750-3" style="width:300px; height:250px;">
+	<script type="text/javascript">
+	googletag.cmd.push(function() { googletag.display('div-gpt-ad-1388505177750-3'); });
+	</script>
+	<div id="google_ads_iframe_/53998264/300x250-Secondary_0__container__" style="border: 0pt none;"><iframe id="google_ads_iframe_/53998264/300x250-Secondary_0" title="3rd party ad content" name="google_ads_iframe_/53998264/300x250-Secondary_0" width="300" height="250" scrolling="no" marginwidth="0" marginheight="0" frameborder="0" style="border: 0px; vertical-align: bottom;" src="./Steps to monitor the SQL Server Services_files/saved_resource(9).html"></iframe></div></div>
+</div>	
+
+
+    </aside>
+    
+
+</div>
+
+
+<footer class="row">
+<div class="large-12 columns">
+	<hr>
+	<div class="row hide-for-print">
+		<div class="large-2 medium-3 columns hide-for-small">
+			<h3><span style="color:#3B6D93">Follow</span></h3>
+			<a href="https://www.mssqltips.com/get-free-sql-server-tips/?ref=GetFooterMenu">Get Free SQL Tips</a><br><br>
+			<a href="https://twitter.com/mssqltips" target="_blank">Twitter</a><br><br>
+			<a href="https://www.linkedin.com/grp/home?gid=2320891" target="_blank">LinkedIn</a><br><br>
+			<a href="https://plus.google.com/+Mssqltips_est_2006/posts" target="_blank">Google+</a><br><br>
+			<a href="https://www.facebook.com/pages/MSSQLTips/155636491141708" target="_blank">Facebook</a><br><br>
+			<a href="https://www.pinterest.com/mssqltips/" target="_blank">Pinterest</a><br><br>
+			<a href="https://feeds.feedburner.com/MSSQLTips-LatestSqlServerTips" target="_blank">RSS</a><br>
+		</div>
+		
+		<div class="large-2 medium-3 small-6 columns">
+			<h3><span style="color:#3B6D93">Learning</span></h3>
+			<a href="https://www.mssqltips.com/sql-server-dba-resources/">DBAs</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-developer-resources/">Developers</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-business-intelligence-resources/">BI Professionals</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-professional-development-resources/">Careers</a><br><br>
+			<a href="https://www.mssqltips.com/todays-sql-server-tip/">Today's Tip</a><br>
+		</div>	
+
+		<div class="large-2 medium-3 small-6 columns">
+			<h3><span style="color:#3B6D93">Resources</span></h3>
+			<a href="https://www.mssqltips.com/sql-server-tutorials/">Tutorials</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-webcasts/">Webcasts</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-whitepapers/">Whitepapers</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-tools/">Tools</a><br><br>
+		</div>
+		
+		<div class="large-2 medium-3 columns hide-for-small">
+			<h3><span style="color:#3B6D93">Search</span></h3>
+			<a href="https://www.mssqltips.com/sql-server-categories/">Tip Categories</a><br><br>
+			<a href="https://www.mssqltips.com/search-tip-id/">Search By TipID</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-mssqltips-authors/">Authors</a><br>
+		</div>
+		
+		<div class="large-2 hide-for-medium columns hide-for-small">
+			<h3><span style="color:#3B6D93">Community</span></h3>
+			<a href="https://www.mssqltips.com/learn-more-about-mssqltips/">First Timer?</a><br><br>
+			<a href="https://www.mssqltips.com/mssqltips-community/1/">Pictures</a><br><br>
+			<a href="https://www.mssqltips.com/contribute/">Contribute</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-event-list/">Event Calendar</a><br><br>
+			<a href="https://www.mssqltips.com/sql-server-user-groups/">User Groups</a><br><br>
+			<a href="https://www.mssqltips.com/mssqltips-author-of-year/">Author of the Year</a><br><br>
+		</div>
+		
+		<div class="large-2 hide-for-medium columns hide-for-small">
+			<h3><span style="color:#3B6D93">More Info</span></h3>
+			<a href="https://www.mssqltips.com/get-free-sql-server-tips/?ref=JoinFooterMenu">Join</a><br><br>
+			<a href="https://www.mssqltips.com/about/">About</a><br><br>
+			<a href="https://www.mssqltips.com/copyright/">Copyright</a><br><br>
+			<a href="https://www.mssqltips.com/privacy/">Privacy</a><br><br>
+			<a href="https://www.mssqltips.com/disclaimer/">Disclaimer</a><br><br>
+			<a href="https://www.mssqltips.com/feedback/">Feedback</a><br><br>
+			<a href="https://www.mssqltips.com/advertise/">Advertise</a><br>
+		</div>
+	</div>
+	<hr>
+	<div class="row">
+		<div class="large-12 columns text-center">
+			<p>Copyright (c) 2006-2019 <a href="https://www.edgewoodsolutions.com/">Edgewood Solutions, LLC</a> All rights reserved<br>
+			<small>Some names and products listed are the registered trademarks of their respective owners.</small></p>
+		</div>
+	</div>
+</div>
+</footer>
+
+
+<!-- dropdown 990x30 -->
+<style type="text/css">
+#slideboxtop{
+    width:100%;
+    height:50px;
+    padding:10px;
+    background-color:#FFFFFF;
+    border-bottom:1px solid #000000;
+    position:fixed;
+    top: -250px;
+	-moz-box-shadow:-2px 0px 5px #aaa;
+	-webkit-box-shadow:-2px 0px 5px #aaa;
+/* 	box-shadow:-2px 0px 5px #aaa;    */
+}
+</style>
+
+<div class="hide-for-small hide-for-medium hide-for-print">
+	<div id="slideboxtop" style="z-index: 99; top: 0px;">
+		<div style="text-align:center">
+			<a onclick="_gaq.push([&#39;_trackEvent&#39;, &#39;990x30&#39;, &#39;Click&#39;, &#39;Dropdown&#39;]);" target="_blank" href="https://www.mssqltips.com/ss.asp?id=3986&amp;link=https://www.mssqltips.com/get-free-sql-server-tips/?ref=ss20190128"><img src="./Steps to monitor the SQL Server Services_files/MSSQLTips_990x30_FreeTips_20171117.png" border="0" height="30" width="990" alt="Learn more about SQL Server tools"></a>
+		</div>
+	</div>
+</div>
+
+<script src="./Steps to monitor the SQL Server Services_files/modernizr.js.download"></script>
+<script type="text/javascript" src="./Steps to monitor the SQL Server Services_files/jquery.min.js.download"></script>
+
+
+
+<link type="text/css" href="./Steps to monitor the SQL Server Services_files/prettify.css" rel="stylesheet">
+<script type="text/javascript" src="./Steps to monitor the SQL Server Services_files/prettify.js.download"></script>
+<script type="text/javascript" src="./Steps to monitor the SQL Server Services_files/lang-sql.js.download"></script>
+
+
+
+<script type="text/javascript">
+$(function() {
+	$(window).scroll(function(){
+		if  ($(window).scrollTop() > 250)
+			$('#slideboxtop').animate({'top':'0px'});
+		else
+			$('#slideboxtop').stop(true).animate({'top':'-250px'});
+	});
+});
+</script>
+
+
+<!-- sticky 300x250 -->
+<style type="text/css">
+#sticky {
+    padding: 0ex;
+    width: 300px;
+    background-color: #fff;
+}
+
+#sticky.stick {
+    margin-top: 75px !important;
+    position: fixed;
+    top: 0;
+    z-index: 10000;
+}
+.fullWidth {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 100%;
+}
+</style>
+
+<script type="text/javascript">
+function sticky_relocate() {
+    var window_top = $(window).scrollTop();
+    var div_top = $('#sticky-anchor').offset().top;
+    var window_width = $(window).width();
+    var window_height = $(window).height();
+    if (window_top > div_top && window_width > 1100 && window_height > 400 ) {
+        $('#sticky').addClass('stick');
+        $('#sticky-anchor').height($('#sticky').outerHeight());
+    } else {
+        $('#sticky').removeClass('stick');
+        $('#sticky-anchor').height(0);
+    }
+}
+
+$(function() {
+    $(window).scroll(sticky_relocate);
+    sticky_relocate();
+});
+
+</script>
+
+<!-- Start Alexa Certify Javascript -->
+<script type="text/javascript">
+_atrk_opts = { atrk_acct:"oydse1a8gR00wM", domain:"mssqltips.com",dynamic: true};
+(function() { var as = document.createElement('script'); as.type = 'text/javascript'; as.async = true; as.src = "https://d31qbv1cthcecs.cloudfront.net/atrk.js"; var s = document.getElementsByTagName('script')[0];s.parentNode.insertBefore(as, s); })();
+</script>
+<noscript><img src="https://d5nxst8fruw4z.cloudfront.net/atrk.gif?account=oydse1a8gR00wM" style="display:none" height="1" width="1" alt="" /></noscript>
+<!-- End Alexa Certify Javascript -->
+
+<script type="text/javascript">
+
+  var _gaq = _gaq || [];
+  _gaq.push(['_setAccount', 'UA-910745-2']);
+  _gaq.push(['_trackPageview']);
+
+  (function() {
+    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+  })();
+
+</script>
+
+
+
+
+<object id="__symantecPKIClientMessenger" data-supports-flavor-configuration="true" data-extension-version="0.5.0.109" style="display: none;"></object><span id="__symantecPKIClientDetector" style="display: none;">__PRESENT</span><iframe name="oauth2relay672789848" id="oauth2relay672789848" src="./Steps to monitor the SQL Server Services_files/postmessageRelay.html" tabindex="-1" aria-hidden="true" style="width: 1px; height: 1px; position: absolute; top: -100px;"></iframe><table cellspacing="0" cellpadding="0" class="gstl_50 gssb_c" style="width: 900px; display: none; top: 124px; position: absolute; left: 298px;"><tbody><tr><td class="gssb_f"></td><td class="gssb_e" style="width: 100%;"></td></tr></tbody></table><div style="background-color: rgb(255, 255, 255); border: 1px solid rgb(204, 204, 204); box-shadow: rgba(0, 0, 0, 0.2) 2px 2px 3px; position: absolute; transition: visibility 0s linear 0.3s, opacity 0.3s linear 0s; opacity: 0; visibility: hidden; z-index: 2000000000; left: 0px; top: -10000px;"><div style="width: 100%; height: 100%; position: fixed; top: 0px; left: 0px; z-index: 2000000000; background-color: rgb(255, 255, 255); opacity: 0.05;"></div><div class="g-recaptcha-bubble-arrow" style="border: 11px solid transparent; width: 0px; height: 0px; position: absolute; pointer-events: none; margin-top: -11px; z-index: 2000000000;"></div><div class="g-recaptcha-bubble-arrow" style="border: 10px solid transparent; width: 0px; height: 0px; position: absolute; pointer-events: none; margin-top: -10px; z-index: 2000000000;"></div><div style="z-index: 2000000000; position: relative;"><iframe title="recaptcha challenge" src="./Steps to monitor the SQL Server Services_files/bframe.html" name="c-62o3et6enldo" frameborder="0" scrolling="no" sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-top-navigation allow-modals allow-popups-to-escape-sandbox" style="width: 100%; height: 100%;"></iframe></div></div></body><span class="gr__tooltip"><span class="gr__tooltip-content"></span><i class="gr__tooltip-logo"></i><span class="gr__triangle"></span></span></html>

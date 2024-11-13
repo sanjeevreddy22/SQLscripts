@@ -1,0 +1,39 @@
+USE [master]
+GO
+
+/****** Object:  DdlTrigger [trigLogon_CheckForSysAdmin1]    Script Date: 3/26/2019 10:52:30 AM ******/
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TRIGGER [trigLogon_CheckForSysAdmin1] 
+            ON ALL SERVER 
+            FOR LOGON 
+            AS 
+    BEGIN 
+    IF EXISTS ( 
+        SELECT sp.principal_id 
+            FROM sys.server_role_members srm 
+                    JOIN sys.server_principals sp 
+                    ON srm.member_principal_id = sp.principal_id 
+            WHERE role_principal_id = ( 
+            SELECT principal_id  
+                FROM sys.server_principals  
+                WHERE NAME = 'sysadmin') 
+                AND ORIGINAL_LOGIN() = sp.NAME) 
+        BEGIN 
+        INSERT INTO Inventory_DBA.dbo.AuditSysAdminLogin 
+            (EventTime, ServerLogin) 
+                VALUES 
+            (GETDATE(), ORIGINAL_LOGIN()) 
+        END; 
+    END; 
+
+GO
+
+ENABLE TRIGGER [trigLogon_CheckForSysAdmin1] ON ALL SERVER
+GO
+
+
